@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- layui css -->
+    <link href="/layui-2.7.6/css/layui.css" rel="stylesheet">
+
+    <!-- fullcalendar css -->
+    <link href='/fullcalendar-5.11.2/lib/main.min.css' rel='stylesheet' />
+
+    <!-- style -->
+    <style>
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+
+        #top {
+            background: #eee;
+            border-bottom: 1px solid #ddd;
+            padding: 0 10px;
+            line-height: 40px;
+            font-size: 12px;
+        }
+
+        .left {
+            float: left
+        }
+
+        .right {
+            float: right
+        }
+
+        .clear {
+            clear: both
+        }
+
+        #warning, #loading {
+            display: none
+        }
+
+        #warning {
+            font-weight: bold;
+            color: red
+        }
+
+        #calendar {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 10px;
+        }
+
+        .tzo {
+            color: #000;
+        }
+
+    </style>
+</head>
+<body>
+<div id='top'>
+    <div class='left'>
+        Timezone:
+        <select id='time-zone-selector'>
+        </select>
+
+        Locales:
+        <select id='locale-selector'></select>
+    </div>
+
+    <div class='right'>
+        <span id='loading'>loading...</span>
+        <span id='warning'>must be running.</span>
+    </div>
+    <div class='clear'></div>
+</div>
+
+<div id='calendar'></div>
+
+</body>
+</html>
+
+<!-- layui js -->
+<script src="/layui-2.7.6/layui.js"></script>
+
+<!-- fullcalendar js -->
+<script src='/fullcalendar-5.11.2/lib/main.min.js'></script>
+<script src='/fullcalendar-5.11.2/lib/locales-all.min.js'></script>
+
+<!-- layui -->
+<script>
+    let layerPopUpBoxIndex = null;
+    var editorWindow = null;
+
+    function layerPopUpBox() {
+        // https://www.layuiweb.com/doc/modules/layer.html
+        layerPopUpBoxIndex = layer.open({
+            // layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）。 若你采用layer.open({type: 1})方式调用，则type为必填项（信息框除外）
+            type: 2,
+
+            // area - 宽高
+            // 类型：String/Array，默认：'auto'
+            // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。当你宽高都要定义时，你可以area: ['500px', '300px']
+            area: ["800px", "600px"],
+
+            // content
+            content: '/editor-0.1.0/editor.html',
+
+            // success
+            success: function (layero, index) {
+                console.log('success')
+                var body = layer.getChildFrame('body', index);
+                iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+                // console.log(body.html()) //得到iframe页的body内容
+                console.log(iframeWin) //得到iframe页的body内容
+                console.log(iframeWin.editor) //得到iframe页的body内容
+            },
+
+            // end
+            end: function () {
+                console.log('end')
+                console.log(iframeWin.editor.codemirror.getValue())
+            }
+        });
+    }
+
+</script>
+
+
+<!-- fullcalendar -->
+<script>
+    var initialLocaleCode = 'zh-cn';
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var initialTimeZone = 'local';
+        var timeZoneSelectorEl = document.getElementById('time-zone-selector');
+        var localeSelectorEl = document.getElementById('locale-selector');
+        var loadingEl = document.getElementById('loading');
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            timeZone: initialTimeZone,
+            locale: initialLocaleCode,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            },
+            initialDate: '2020-09-12',
+            navLinks: true, // can click day/week names to navigate views
+            editable: true,
+            selectable: true,
+            dayMaxEvents: true, // allow "more" link when too many events
+            events: {
+                url: '/fullcalendar-5.11.2/examples/json/events.json',
+                failure: function () {
+                    document.getElementById('warning').style.display = 'inline'; // show
+                }
+            },
+            loading: function (bool) {
+                if (bool) {
+                    loadingEl.style.display = 'inline'; // show
+                } else {
+                    loadingEl.style.display = 'none'; // hide
+                }
+            },
+
+            eventTimeFormat: { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' },
+
+            dateClick: function (arg) {
+                console.log('dateClick', calendar.formatIso(arg.date));
+                layerPopUpBox();
+            },
+            select: function (arg) {
+                console.log('select', calendar.formatIso(arg.start), calendar.formatIso(arg.end));
+            }
+        });
+
+        calendar.render();
+
+        // build the locale selector's options
+        calendar.getAvailableLocaleCodes().forEach(function (localeCode) {
+            var optionEl = document.createElement('option');
+            optionEl.value = localeCode;
+            optionEl.selected = localeCode == initialLocaleCode;
+            optionEl.innerText = localeCode;
+            localeSelectorEl.appendChild(optionEl);
+        });
+
+        // when the selected option changes, dynamically change the calendar option
+        localeSelectorEl.addEventListener('change', function () {
+            if (this.value) {
+                calendar.setOption('locale', this.value);
+            }
+        });
+
+        // load the list of available timezones, build the <select> options
+        // it's HIGHLY recommended to use a different library for network requests, not this internal util func
+        FullCalendar.requestJson('GET', '/calendar/timeZones', {}, function (timeZones) {
+            timeZones.forEach(function (timeZone) {
+                var optionEl = document.createElement('option');
+                optionEl.value = timeZone;
+                optionEl.innerText = timeZone;
+                timeZoneSelectorEl.appendChild(optionEl);
+            });
+        }, function () {
+            // TODO: handle error
+        });
+
+        // when the timezone selector changes, dynamically change the calendar option
+        timeZoneSelectorEl.addEventListener('change', function () {
+            calendar.setOption('timeZone', this.value);
+        });
+    });
+
+</script>
+
+<!-- document -->
+<script>
+    document.onkeydown = function (event) {
+        // console.log(event);
+
+        // Esc
+        if (event.code == 'Escape') {
+            if (layerPopUpBoxIndex != null) {
+                layer.close(layerPopUpBoxIndex);
+                layerPopUpBoxIndex = null;
+            }
+        }
+    }
+</script>

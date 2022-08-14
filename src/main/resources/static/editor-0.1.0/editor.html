@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor</title>
+    <!-- css -->
+    <link rel="stylesheet" href="/editor-0.1.0/editor.css">
+    <style type="text/css">
+        body {
+            padding: 0;
+            margin: 0;
+            background-color: #f9f9f7;
+        }
+
+        .editor-wrapper {
+            max-width: 800px;
+            padding: 0px;
+            margin: 0px auto;
+        }
+    </style>
+</head>
+<body>
+<div class="editor-wrapper">
+    <textarea id="editor" placeholder="Content here ...." style="display: none;"></textarea>
+</div>
+</body>
+</html>
+
+<!-- js -->
+<script src="/editor-0.1.0/editor.js"></script>
+<script src="/editor-0.1.0/marked.js"></script>
+<script src="/zepto-v1.2.0/zepto.min.js"></script>
+
+<!-- https://github.com/lepture/editor -->
+<script>
+    function EditorHelper() {
+        // Having done this, an editor instance can be created:
+        // this.editor = new Editor();
+        // this.editor.render();
+        // The editor will take the position of the first <textarea> element.
+
+        //
+        this.editor = new Editor({
+            element: document.getElementById('editor'),
+            // toolbar: []
+        });
+        this.editor.render();
+    }
+
+    EditorHelper.prototype.refresh = function () {
+        this.editor.codemirror.refresh();
+    }
+
+    EditorHelper.prototype.getValue = function () {
+        // Get the content
+        // To get back the edited content you use:
+        return this.editor.codemirror.getValue();
+    }
+
+    EditorHelper.prototype.setValue = function (value) {
+        this.editor.codemirror.setValue(value);
+    }
+    EditorHelper.prototype.save = function () {
+        this.editor.codemirror.save();
+    }
+
+    window.editorHelper = new EditorHelper();
+</script>
+
