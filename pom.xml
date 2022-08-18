@@ -22,12 +22,49 @@
         <commons-text.version>1.9</commons-text.version>
         <commons-compress>1.21</commons-compress>
 
+        <!-- guava -->
+        <guava.version>31.1-jre</guava.version>
+
         <!-- spring-boot-dependencies -->
         <spring-boot-dependencies.version>2.5.14</spring-boot-dependencies.version>
+
+        <!-- mybatis-plus -->
+        <mybatis-plus.version>3.5.2</mybatis-plus.version>
+        <velocity-engine-core.version>2.3</velocity-engine-core.version>
+
+        <!-- knife4j -->
+        <knife4j-spring-boot-starter.version>3.0.3</knife4j-spring-boot-starter.version>
 
     </properties>
 
     <dependencies>
+
+        <!-- knife4j -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-spring-boot-starter</artifactId>
+            <version>${knife4j-spring-boot-starter.version}</version>
+        </dependency>
+
+        <!-- mybatis plus -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-generator</artifactId>
+            <version>${mybatis-plus.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- velocity模板引擎 -->
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity-engine-core</artifactId>
+            <version>${velocity-engine-core.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- sqlite-jdbc -->
         <dependency>
@@ -45,6 +82,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- spring-boot-starter-cache -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- caffeine cache -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
         </dependency>
 
         <!-- starter-web -->
@@ -75,6 +124,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
 
         <!-- commons -->
@@ -149,12 +205,14 @@
                 </includes>
             </resource>
 
-            <!-- 静态资源不需要过滤，否则会导致某些文件访问异常 -->
+            <!-- 静态资源不需要过滤，否则会导致某些文件（例如：icomoon.woff、icomoon.ttf等等）访问异常 -->
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
                 <includes>
+                    <include>db/**</include>
                     <include>META-INF/**</include>
+                    <include>mybatis/**</include>
                     <include>static/**</include>
                     <include>templates/**</include>
                 </includes>
@@ -185,5 +243,36 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- dev，开发环境 -->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profiles.active>dev</profiles.active>
+            </properties>
+            <activation>
+                <!-- 默认环境 -->
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+
+        <!-- test，测试环境 -->
+        <profile>
+            <id>test</id>
+            <properties>
+                <profiles.active>test</profiles.active>
+            </properties>
+        </profile>
+
+        <!-- prod，生产环境 -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <profiles.active>prod</profiles.active>
+            </properties>
+        </profile>
+
+    </profiles>
 
 </project>
