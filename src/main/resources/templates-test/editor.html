@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Editor</title>
     <!-- css -->
-    <link rel="stylesheet" href="/editor-0.1.0/editor.css">
+    <link rel="stylesheet" href="../static/lib/editor-0.1.0/editor.css">
     <style type="text/css">
         body {
             padding: 0;
@@ -26,13 +26,24 @@
 </body>
 </html>
 
-<!-- js -->
-<script src="/editor-0.1.0/editor.js"></script>
-<script src="/editor-0.1.0/marked.js"></script>
-<script src="/zepto-v1.2.0/zepto.min.js"></script>
+<!-- editor js -->
+<script src="../static/lib/editor-0.1.0/editor.js"></script>
+<script src="../static/lib/editor-0.1.0/marked.js"></script>
+<script src="../static/lib/zepto-v1.2.0/zepto.min.js"></script>
+
+<!-- md5 js -->
+<script src='../static/js/utils.js'></script>
+
+<!-- custom -->
+<script src='../static/lib/md5-2.16.0/main.min.js'></script>
 
 <!-- https://github.com/lepture/editor -->
 <script>
+
+
+    let requestParams = Utils.getRequestParams();
+    console.log('requestParams', requestParams);
+
     function EditorHelper() {
         // Having done this, an editor instance can be created:
         // this.editor = new Editor();
@@ -65,5 +76,19 @@
     }
 
     window.editorHelper = new EditorHelper();
+
+    window.onbeforeunload = function (event) {
+        console.log(event);
+    }
+
+    // 定时检测内容是否发生变化，若发生变化便同步到服务器
+    function check() {
+        let hash = md5(window.editorHelper.getValue());
+        console.log('hash', hash);
+        window.setTimeout(check, 500);
+    }
+
+    window.setTimeout(check, 500); // ms
+
 </script>
 

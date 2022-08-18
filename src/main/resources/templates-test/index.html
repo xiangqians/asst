@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Index</title>
+
+    <link href="../static/css/index.css" rel="stylesheet">
+
+    <style>
+    </style>
+
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row" style="margin: 20px;">
+        <div class="col-md-12">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link" href="javascript:;" value="note">笔记</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="javascript:;" value="event">事件</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="javascript:;" value="calendar">日历</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="javascript:;">时序图</a>
+                </li>
+            </ul>
+            <br>
+            <div style="text-align:center;">
+                <iframe id="iframe" frameborder="no"
+                        style="min-width: 100%;min-height: 1000px"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<!-- jquery -->
+<script src='../static/lib/jquery-3.6.0/main.min.js'></script>
+
+<!-- utils -->
+<script src='../static/js/utils.js'></script>
+
+<!-- tab页切换处理 -->
+<script>
+
+    // 设置激活的tab页
+    function setActiveNavItem(value) {
+        let $navLink = $(".nav-link[value='" + value + "']");
+        // console.log(value, $navLink[0]);
+        if (!$navLink[0] || $navLink.hasClass('active') || $navLink.hasClass('disabled')) {
+            return false;
+        }
+
+        const navLinks = $('.nav-link');
+        for (let i = 0, length = navLinks.length; i < length; i++) {
+            $navLink = $(navLinks[i]);
+            if ($navLink.attr('value') === value) {
+                if (!$navLink.hasClass('active')) {
+                    $navLink.addClass('active');
+                }
+                continue;
+            }
+            $navLink.removeClass('active');
+        }
+        return true;
+    }
+
+    $(function () {
+        // tab页url映射
+        const urlMap = new Map();
+        urlMap.set('note', './note.html');
+        urlMap.set('event', './event.html');
+        urlMap.set('calendar', './calendar.html');
+
+        const activeNavItemName = 'ACTIVE_NAV_ITEM';
+
+        // 设置iframe默认tab页
+        let activeNavItemValue = Utils.Storage.get(activeNavItemName);
+        activeNavItemValue = activeNavItemValue ? activeNavItemValue : 'note';
+        // console.log('activeNavItemValue', activeNavItemValue);
+        setActiveNavItem(activeNavItemValue);
+        $("#iframe").attr('src', urlMap.get(activeNavItemValue));
+
+        // tab页切换逻辑处理
+        const navItems = $('.nav-item');
+        for (let i = 0, length = navItems.length; i < length; i++) {
+            $(navItems[i]).on('click', function () {
+                let $navLink = $($(this).children('.nav-link')[0]);
+                let value = $navLink.attr('value');
+                if (setActiveNavItem(value)) {
+                    Utils.Storage.set(activeNavItemName, value);
+                    $("#iframe").attr('src', urlMap.get(value));
+                }
+            });
+        }
+    });
+
+</script>
+
+<script>
+
+    let iframeHeight = $("#iframe").contents().find("body").height();
+    // console.log('iframeHeight', iframeHeight);
+    // $("#iframe").attr('height', iframeHeight + 'px');
+    // 注：iframeId为iframe的ID；divId为iframe中body的div ID，这个div为body的整体内容容器。
+
+</script>

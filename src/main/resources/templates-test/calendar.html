@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
 
     <!-- layui css -->
-    <link href="/layui-2.7.6/css/layui.css" rel="stylesheet">
+    <link href="../static/lib/layui-2.7.6/css/layui.css" rel="stylesheet">
 
     <!-- fullcalendar css -->
-    <link href='/fullcalendar-5.11.2/lib/main.min.css' rel='stylesheet' />
+    <link href='../static/lib/fullcalendar-5.11.2/lib/main.min.css' rel='stylesheet' />
 
     <!-- style -->
     <style>
@@ -49,8 +49,8 @@
         }
 
         #calendar {
-            max-width: 1100px;
-            margin: 40px auto;
+            max-width: 80%;
+            margin: 20px auto;
             padding: 0 10px;
         }
 
@@ -80,22 +80,29 @@
 
 <div id='calendar'></div>
 
+<div class="layui-input-inline">
+    <input id="start" class="layui-input" name="start" placeholder="开始时间" />
+</div>
+
 </body>
 </html>
 
 <!-- layui js -->
-<script src="/layui-2.7.6/layui.js"></script>
+<script src="../static/lib/layui-2.7.6/layui.js"></script>
 
 <!-- fullcalendar js -->
-<script src='/fullcalendar-5.11.2/lib/main.min.js'></script>
-<script src='/fullcalendar-5.11.2/lib/locales-all.min.js'></script>
+<script src='../static/lib/fullcalendar-5.11.2/lib/main.min.js'></script>
+<script src='../static/lib/fullcalendar-5.11.2/lib/locales-all.min.js'></script>
+
+<!-- custom -->
+<script src='../static/js/utils.js'></script>
 
 <!-- layui -->
 <script>
     let layerPopUpBoxIndex = null;
-    var editorWindow = null;
+    var editorHelper = null;
 
-    function layerPopUpBox() {
+    function layerPopUpBox(title) {
         // https://www.layuiweb.com/doc/modules/layer.html
         layerPopUpBoxIndex = layer.open({
             // layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）。 若你采用layer.open({type: 1})方式调用，则type为必填项（信息框除外）
@@ -106,26 +113,38 @@
             // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。当你宽高都要定义时，你可以area: ['500px', '300px']
             area: ["800px", "600px"],
 
+            title: title,
+
             // content
-            content: '/editor-0.1.0/editor.html',
+            content: './editor.html?id=1',
 
             // success
             success: function (layero, index) {
-                console.log('success')
-                var body = layer.getChildFrame('body', index);
-                iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+                let iframeWindow = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
                 // console.log(body.html()) //得到iframe页的body内容
-                console.log(iframeWin) //得到iframe页的body内容
-                console.log(iframeWin.editor) //得到iframe页的body内容
+                editorHelper = iframeWindow.editorHelper;
             },
 
             // end
             end: function () {
-                console.log('end')
-                console.log(iframeWin.editor.codemirror.getValue())
+                console.log('end', editorHelper.getValue());
             }
         });
     }
+
+    layui.use('laydate', function () {
+        var laydate = layui.laydate;
+        laydate.render({
+            //指定元素
+            elem: '#start',
+            // year: 只提供年份列表选择
+            // month: 只提供年份、月份列表选择
+            // date: 可选择：年、月、日
+            // time: 只提供时、分、秒选择
+            // datetime: 可选择：年、月、日、时、分、秒
+            type: 'datetime'
+        });
+    });
 
 </script>
 
@@ -133,6 +152,8 @@
 <!-- fullcalendar -->
 <script>
     var initialLocaleCode = 'zh-cn';
+
+    let doubleClickEvent = new Utils.DoubleClickEvent();
 
     document.addEventListener('DOMContentLoaded', function () {
         var initialTimeZone = 'local';
@@ -142,20 +163,45 @@
         var calendarEl = document.getElementById('calendar');
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            timeZone: initialTimeZone,
-            locale: initialLocaleCode,
+
+            // 日历头部按钮位置
             headerToolbar: {
                 left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                center: 'title',  // will normally be on the left. if RTL, will be on the right
+                right: 'prevYear,nextYear dayGridMonth,timeGridWeek,timeGridDay,listWeek'
             },
+
+            // 默认为那个视图（月：dayGridMonth，周：timeGridWeek，日：timeGridDay）
+            // initialView: 'dayGridMonth',
+
+            // 设置一周中显示的第一天是哪天，周日是0，周一是1，类推
+            firstDay: 0,
+
+            // 语言
+            locale: initialLocaleCode,
+            // 时区
+            timeZone: initialTimeZone,
+
+            // this allows things to be dropped onto the calendar
+            // droppable: true,
+
             initialDate: '2020-09-12',
-            navLinks: true, // can click day/week names to navigate views
-            editable: true,
+            // can click day/week names to navigate views
+            // 允许天/周名称是否可点击，包括周次weekNumber，点击之后可以跳转到对于的天/周视图，默认false
+            navLinks: true,
+            // 是否可以进行（拖动、缩放）修改
+            editable: false,
+            // 是否可以选中日历格
             selectable: true,
-            dayMaxEvents: true, // allow "more" link when too many events
+            // allow "more" link when too many events
+            dayMaxEvents: true,
+            // Event日程开始时间可以改变，默认true，如果是false其实就是指日程块不能随意拖动，只能上下拉伸改变他的endTime
+            // eventStartEditable: true,
+            // 相同时间段的多个日程视觉上是否允许重叠，默认true允许
+            // slotEventOverlap: false,
+
             events: {
-                url: '/fullcalendar-5.11.2/examples/json/events.json',
+                url: '../static/json/events.json',
                 failure: function () {
                     document.getElementById('warning').style.display = 'inline'; // show
                 }
@@ -170,13 +216,43 @@
 
             eventTimeFormat: { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' },
 
-            dateClick: function (arg) {
-                console.log('dateClick', calendar.formatIso(arg.date));
-                layerPopUpBox();
+            // 切换视图调用的方法
+            datesSet: function (arg) {
+                // console.log('datesSet', arg)
             },
+
+            // 选中日历格事件
             select: function (arg) {
-                console.log('select', calendar.formatIso(arg.start), calendar.formatIso(arg.end));
-            }
+                // console.log('select', calendar.formatIso(arg.start), calendar.formatIso(arg.end));
+                // console.log('select', arg);
+            },
+
+            // 选中日期事件
+            dateClick: function (arg) {
+                doubleClickEvent.click(function () {
+                    // console.log('dateClick', calendar.formatIso(arg.date));
+                    layerPopUpBox("新增");
+                });
+            },
+
+            // 点击日历日程事件
+            eventClick: function (arg) {
+                doubleClickEvent.click(function () {
+                    // console.log('eventClick', arg);
+                    layerPopUpBox("查看");
+                });
+            },
+
+            // 拖动日历日程事件
+            eventDrop: function (arg) {
+                // console.log('eventDrop', arg);
+            },
+
+            // 鼠标滑过
+            eventMouseEnter: function (arg) {
+                // console.log('eventMouseEnter', arg);
+            },
+
         });
 
         calendar.render();
@@ -199,7 +275,7 @@
 
         // load the list of available timezones, build the <select> options
         // it's HIGHLY recommended to use a different library for network requests, not this internal util func
-        FullCalendar.requestJson('GET', '/calendar/timeZones', {}, function (timeZones) {
+        FullCalendar.requestJson('GET', '../static/json/time-zones.json', {}, function (timeZones) {
             timeZones.forEach(function (timeZone) {
                 var optionEl = document.createElement('option');
                 optionEl.value = timeZone;
