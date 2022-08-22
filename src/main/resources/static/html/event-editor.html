@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Event Editor</title>
+
+    <!-- jquery.datetimepicker.min.css -->
+    <link rel="stylesheet" type="text/css" href="/lib/datetimepicker/jquery.datetimepicker.min.css">
+
+    <!-- editor.css -->
+    <link rel="stylesheet" href="/lib/editor-0.1.0/editor.css">
+
+    <style type="text/css">
+        body {
+            padding: 0;
+            margin: 0;
+            background-color: #f9f9f7;
+        }
+
+        .editor-wrapper {
+            max-width: 1500px;
+            padding: 10px;
+            margin: 60px auto;
+        }
+    </style>
+</head>
+<body>
+<div class="editor-wrapper">
+    <input name="title" class="title" type="text" placeholder="Title">
+    <textarea id="editor" placeholder="Content here ...." style="display: none;"></textarea>
+
+    <table>
+        <tr>
+            <td>链接</td>
+            <td><input name="url" type="text"></td>
+        </tr>
+        <tr>
+            <td>权重</td>
+            <td><input name="weight" type="number"></td>
+        </tr>
+        <tr>
+            <td>事件开始时间</td>
+            <td><input name="startTime" type="text"></td>
+        </tr>
+        <tr>
+            <td>事件结束时间</td>
+            <td><input name="endTime" type="text"></td>
+        </tr>
+    </table>
+    <button onclick="save()">保存</button>
+</div>
+
+
+</body>
+</html>
+
+<!-- jquery.datetimepicker.full.js -->
+<script src="/lib/datetimepicker/jquery.datetimepicker.full.min.js"></script>
+
+<!-- editor.js -->
+<script src="/lib/editor-0.1.0/editor.js"></script>
+<script src="/lib/editor-0.1.0/marked.js"></script>
+<script src="/lib/zepto-v1.2.0/zepto.min.js"></script>
+
+<!-- md5.js -->
+<script src='/lib/md5-2.16.0/main.min.js'></script>
+
+<!-- utils.js -->
+<script src='/js/utils.js'></script>
+
+<!-- editor.js -->
+<script src='/js/editor.js'></script>
+
+<!-- https://github.com/lepture/editor -->
+<script>
+
+    let requestParams = Utils.getRequestParams();
+    console.log('requestParams', requestParams);
+    let id = requestParams.get('id');
+    console.log('id', id);
+
+    let title = null;
+    let content = null;
+    Utils.Http.get('/event/queryById/' + id, null, function (resp) {
+        title = resp.body.title;
+        content = resp.body.content;
+    });
+
+    $($('title')[0]).text(title);
+    $($('input[name=title]')[0]).val(title);
+
+    // EditorHelper
+    let editorHelper = new EditorHelper();
+    editorHelper.hash = md5(title + content);
+    editorHelper.setValue(content);
+
+    // 触发预览
+    editorHelper.editor.togglePreview();
+
+    function save() {
+        let title = $($('input[name=title]')[0]).val();
+        let content = editorHelper.getValue();
+        let params = {
+            'id': id,
+            'title': title,
+            'content': content,
+        };
+        Utils.Http.put('/event/updateById', params, function () {
+            editorHelper.titleHash = md5(title);
+            editorHelper.contentHash = md5(content);
+            alert('保存成功!');
+        });
+    }
+
+</script>
+
+<script>
+    window.onbeforeunload = function (e) {
+        var e = window.event || e;
+        let title = $($('input[name=title]')[0]).val();
+        let content = editorHelper.getValue();
+        if (editorHelper.hash !== md5(title + content)) {
+            e.returnValue = ("数据发生改变!");
+        }
+    }
+</script>

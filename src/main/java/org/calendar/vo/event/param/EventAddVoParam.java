@@ -7,9 +7,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.calendar.o.PoParam;
 import org.calendar.o.VoParam;
 import org.calendar.po.param.EventPoParam;
+import org.calendar.util.DateUtils;
+import org.calendar.validation.groups.Add;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 /**
  * @author xiangqian
@@ -19,7 +23,7 @@ import javax.validation.constraints.NotNull;
 @ApiModel(description = "新增事件信息")
 public class EventAddVoParam implements VoParam {
 
-    @NotBlank(message = "事件标题不能为空")
+    @NotBlank(message = "事件标题不能为空", groups = {Add.class})
     @ApiModelProperty(value = "事件标题", required = true)
     private String title;
 
@@ -29,19 +33,21 @@ public class EventAddVoParam implements VoParam {
     @ApiModelProperty("事件内容")
     private String content;
 
-    @NotNull(message = "事件开始时间（时间戳）不能为空")
-    @ApiModelProperty(value = "事件开始时间（时间戳）", required = true)
-    private Long startTime;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @NotNull(message = "事件开始时间不能为空", groups = {Add.class})
+    @ApiModelProperty(value = "事件开始时间", required = true)
+    private LocalDateTime startTime;
 
-    @NotNull(message = "事件结束时间（时间戳）不能为空")
-    @ApiModelProperty(value = "事件结束时间（时间戳）", required = true)
-    private Long endTime;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @NotNull(message = "事件结束时间不能为空", groups = {Add.class})
+    @ApiModelProperty(value = "事件结束时间", required = true)
+    private LocalDateTime endTime;
 
     @Override
     public void post() {
         title = StringUtils.trimToNull(title);
         url = StringUtils.trim(url);
-        content = StringUtils.trim(content);
+        content = StringUtils.trimToEmpty(content);
     }
 
     @Override
@@ -52,8 +58,8 @@ public class EventAddVoParam implements VoParam {
             poParam.setTitle(getTitle());
             poParam.setUrl(getUrl());
             poParam.setContent(getContent());
-            poParam.setStartTime(getStartTime());
-            poParam.setEndTime(getEndTime());
+            poParam.setStartTime(DateUtils.dateToTimestamp(getStartTime()));
+            poParam.setEndTime(DateUtils.dateToTimestamp(getEndTime()));
             return (T) poParam;
         }
 

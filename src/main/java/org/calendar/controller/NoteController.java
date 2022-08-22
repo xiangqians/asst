@@ -7,12 +7,15 @@ import org.calendar.pagination.Page;
 import org.calendar.resp.Response;
 import org.calendar.resp.StatusCodeImpl;
 import org.calendar.service.NoteService;
+import org.calendar.validation.groups.Add;
+import org.calendar.validation.groups.Modify;
 import org.calendar.vo.note.NoteVo;
 import org.calendar.vo.note.param.NoteAddVoParam;
 import org.calendar.vo.note.param.NoteModifyVoParam;
 import org.calendar.vo.note.param.NotePageVoParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -53,7 +56,7 @@ public class NoteController {
     @ResponseBody
     @ApiOperation("修改笔记信息")
     @PutMapping("/updateById")
-    public Response<Boolean> updateById(@RequestBody @Valid NoteModifyVoParam voParam) throws Exception {
+    public Response<Boolean> updateById(@RequestBody @Validated(Modify.class) NoteModifyVoParam voParam) throws Exception {
         return Response.<Boolean>builder()
                 .statusCode(StatusCodeImpl.OK)
                 .body(noteService.updateById(voParam))
@@ -74,7 +77,7 @@ public class NoteController {
     @ResponseBody
     @PostMapping("/save")
     @ApiOperation("新增笔记信息")
-    public Response<Boolean> add(@RequestBody @Valid NoteAddVoParam voParam) throws Exception {
+    public Response<Boolean> add(@RequestBody @Validated(Add.class) NoteAddVoParam voParam) throws Exception {
         return Response.<Boolean>builder()
                 .statusCode(StatusCodeImpl.OK)
                 .body(noteService.save(voParam))

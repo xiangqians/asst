@@ -3,7 +3,10 @@ package org.calendar.po;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import org.calendar.o.Vo;
+import org.calendar.util.DateUtils;
 import org.calendar.vo.event.EventVo;
+
+import java.util.Optional;
 
 /**
  * 事件信息表
@@ -50,8 +53,8 @@ public class EventPo extends ComPo {
             vo.setTitle(getTitle());
             vo.setUrl(getUrl());
             vo.setContent(getContent());
-            vo.setStartTime(getStartTime());
-            vo.setEndTime(getEndTime());
+            vo.setStartTime(Optional.ofNullable(getStartTime()).map(DateUtils::timestampToDate).orElse(null));
+            vo.setEndTime(Optional.ofNullable(getEndTime()).map(DateUtils::timestampToDate).orElse(null));
             return (T) vo;
         }
 

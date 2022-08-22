@@ -32,7 +32,13 @@ public class NoteServiceImpl implements NoteService {
     @Transactional(timeout = 10, readOnly = true)
     @Override
     public Page<NoteVo> queryForPage(NotePageVoParam voParam) {
-        return noteDao.queryForPage(voParam, voParam.convertToPoParam(NotePoParam.class)).convert(poToVoFunction);
+        return noteDao.queryForPage(voParam, voParam.convertToPoParam(NotePoParam.class)).convert(po -> {
+            NoteVo vo = po.convertToVo(NoteVo.class);
+            if (Objects.nonNull(po.getContent()) && po.getContent().length() > 20) {
+                vo.setContent(po.getContent().substring(0, 20) + " [更多]");
+            }
+            return vo;
+        });
     }
 
     @Transactional(timeout = 10, readOnly = true)

@@ -15,7 +15,7 @@ public class DateUtils {
     public static final String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ofPattern(DEFAULT_PATTERN);
 
-    public static LocalDateTime parse(String text) {
+    public static LocalDateTime parseForLocalDateTime(String text) {
         return parse(text, DEFAULT_FORMATTER);
     }
 

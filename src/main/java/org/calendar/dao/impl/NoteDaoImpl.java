@@ -33,6 +33,10 @@ public class NoteDaoImpl implements NoteDao {
         if (Objects.nonNull(poParam.getTitle())) {
             lambdaQueryWrapper.like(NotePo::getTitle, poParam.getTitle());
         }
+        if (Objects.nonNull(poParam.getContent())) {
+            lambdaQueryWrapper.like(NotePo::getContent, poParam.getContent());
+        }
+        lambdaQueryWrapper.orderByDesc(NotePo::getCreateTime);
         return DaoHelper.queryForPage(noteMapper, pageRequest, lambdaQueryWrapper);
     }
 

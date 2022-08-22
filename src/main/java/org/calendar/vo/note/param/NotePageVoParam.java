@@ -21,6 +21,9 @@ public class NotePageVoParam extends PageRequest {
     @ApiModelProperty("笔记标题")
     private String title;
 
+    @ApiModelProperty("笔记内容")
+    private String content;
+
     @ApiModelProperty("createTime-根据创建时间排序，updateTime-根据更新时间排序；" + SORT_FIELDS_DOCUMENT_DESCRIPTION)
     @Override
     public String getSortFields() {
@@ -35,6 +38,7 @@ public class NotePageVoParam extends PageRequest {
     @Override
     public void post() {
         title = StringUtils.trimToNull(title);
+        content = StringUtils.trimToNull(content);
         super.post();
     }
 
@@ -44,6 +48,7 @@ public class NotePageVoParam extends PageRequest {
         if (type == NotePoParam.class) {
             NotePoParam poParam = new NotePoParam();
             poParam.setTitle(getTitle());
+            poParam.setContent(getContent());
             return (T) poParam;
         }
 

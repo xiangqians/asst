@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
 
-    <!-- layui css -->
-    <link href="../static/lib/layui-2.7.6/css/layui.css" rel="stylesheet">
-
-    <!-- fullcalendar css -->
-    <link href='../static/lib/fullcalendar-5.11.2/lib/main.min.css' rel='stylesheet' />
+    <!-- fullcalendar.css -->
+    <link href='/lib/fullcalendar-5.11.2/lib/main.min.css' rel='stylesheet' />
 
     <!-- style -->
     <style>
@@ -80,74 +77,18 @@
 
 <div id='calendar'></div>
 
-<div class="layui-input-inline">
-    <input id="start" class="layui-input" name="start" placeholder="开始时间" />
-</div>
-
 </body>
 </html>
 
-<!-- layui js -->
-<script src="../static/lib/layui-2.7.6/layui.js"></script>
+<!-- fullcalendar.js -->
+<script src='/lib/fullcalendar-5.11.2/lib/main.min.js'></script>
+<script src='/lib/fullcalendar-5.11.2/lib/locales-all.min.js'></script>
 
-<!-- fullcalendar js -->
-<script src='../static/lib/fullcalendar-5.11.2/lib/main.min.js'></script>
-<script src='../static/lib/fullcalendar-5.11.2/lib/locales-all.min.js'></script>
+<!-- utils.js -->
+<script src='/js/utils.js'></script>
 
-<!-- custom -->
-<script src='../static/js/utils.js'></script>
-
-<!-- layui -->
-<script>
-    let layerPopUpBoxIndex = null;
-    var editorHelper = null;
-
-    function layerPopUpBox(title) {
-        // https://www.layuiweb.com/doc/modules/layer.html
-        layerPopUpBoxIndex = layer.open({
-            // layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）。 若你采用layer.open({type: 1})方式调用，则type为必填项（信息框除外）
-            type: 2,
-
-            // area - 宽高
-            // 类型：String/Array，默认：'auto'
-            // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。当你宽高都要定义时，你可以area: ['500px', '300px']
-            area: ["800px", "600px"],
-
-            title: title,
-
-            // content
-            content: './editor.html?id=1',
-
-            // success
-            success: function (layero, index) {
-                let iframeWindow = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
-                // console.log(body.html()) //得到iframe页的body内容
-                editorHelper = iframeWindow.editorHelper;
-            },
-
-            // end
-            end: function () {
-                console.log('end', editorHelper.getValue());
-            }
-        });
-    }
-
-    layui.use('laydate', function () {
-        var laydate = layui.laydate;
-        laydate.render({
-            //指定元素
-            elem: '#start',
-            // year: 只提供年份列表选择
-            // month: 只提供年份、月份列表选择
-            // date: 可选择：年、月、日
-            // time: 只提供时、分、秒选择
-            // datetime: 可选择：年、月、日、时、分、秒
-            type: 'datetime'
-        });
-    });
-
-</script>
-
+<!-- editor.js -->
+<script src='/js/editor.js'></script>
 
 <!-- fullcalendar -->
 <script>
@@ -201,7 +142,7 @@
             // slotEventOverlap: false,
 
             events: {
-                url: '../static/json/events.json',
+                url: '/json/events.json',
                 failure: function () {
                     document.getElementById('warning').style.display = 'inline'; // show
                 }
@@ -230,16 +171,14 @@
             // 选中日期事件
             dateClick: function (arg) {
                 doubleClickEvent.click(function () {
-                    // console.log('dateClick', calendar.formatIso(arg.date));
-                    layerPopUpBox("新增");
+                    console.log('dateClick', calendar.formatIso(arg.date));
                 });
             },
 
             // 点击日历日程事件
             eventClick: function (arg) {
                 doubleClickEvent.click(function () {
-                    // console.log('eventClick', arg);
-                    layerPopUpBox("查看");
+                    console.log('eventClick', arg);
                 });
             },
 
@@ -275,7 +214,7 @@
 
         // load the list of available timezones, build the <select> options
         // it's HIGHLY recommended to use a different library for network requests, not this internal util func
-        FullCalendar.requestJson('GET', '../static/json/time-zones.json', {}, function (timeZones) {
+        FullCalendar.requestJson('GET', '/json/time-zones.json', {}, function (timeZones) {
             timeZones.forEach(function (timeZone) {
                 var optionEl = document.createElement('option');
                 optionEl.value = timeZone;
@@ -292,19 +231,4 @@
         });
     });
 
-</script>
-
-<!-- document -->
-<script>
-    document.onkeydown = function (event) {
-        // console.log(event);
-
-        // Esc
-        if (event.code == 'Escape') {
-            if (layerPopUpBoxIndex != null) {
-                layer.close(layerPopUpBoxIndex);
-                layerPopUpBoxIndex = null;
-            }
-        }
-    }
 </script>

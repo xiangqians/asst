@@ -53,7 +53,7 @@ Utils.getRequestParams = function () {
     // console.log('url', url);
     let index = url.indexOf("?");
     if (index <= 0) {
-        return null;
+        return new Map();
     }
 
     let map = new Map();
@@ -120,3 +120,94 @@ Utils.Storage._cookieStorage.get = function (name) {
 // 设置存储策略
 Utils.Storage._storageStrategy = Utils.Storage._sessionStorage;
 
+/**
+ * Http
+ * @constructor
+ */
+Utils.Http = function () {
+}
+
+/**
+ * ajax
+ * @param url
+ * @param data
+ * @param type post,delete,put,get
+ * @param success
+ * @param error
+ * @private
+ */
+Utils.Http._ajax = function (url, data, type, success, error) {
+    $.ajax({
+        url: url,
+        data: data,
+        type: type,
+        dataType: "json",
+        async: false,
+        headers: { 'Content-Type': 'application/json;charset=utf-8' }, //接口json格式
+        success: function (resp) {
+            if (resp.statusCode !== 200) {
+                if (error) {
+                    error(resp);
+                } else {
+                    alert(resp.message);
+                }
+                return;
+            }
+
+            if (success) {
+                success(resp);
+            }
+        },
+        error: function (resp) {
+            if (error) {
+                error(resp);
+                return;
+            }
+            alert(resp.message);
+        }
+    });
+}
+
+/**
+ * POST
+ * @param url
+ * @param data
+ * @param success
+ * @param error
+ */
+Utils.Http.post = function (url, data, success, error) {
+    Utils.Http._ajax(url, JSON.stringify(data), 'post', success, error);
+}
+
+/**
+ * DELETE
+ * @param url
+ * @param data
+ * @param success
+ * @param error
+ */
+Utils.Http.delete = function (url, data, success, error) {
+    Utils.Http._ajax(url, JSON.stringify(data), 'delete', success, error);
+}
+
+/**
+ * PUT
+ * @param url
+ * @param data
+ * @param success
+ * @param error
+ */
+Utils.Http.put = function (url, data, success, error) {
+    Utils.Http._ajax(url, JSON.stringify(data), 'put', success, error);
+}
+
+/**
+ * GET
+ * @param url
+ * @param data
+ * @param success
+ * @param error
+ */
+Utils.Http.get = function (url, data, success, error) {
+    Utils.Http._ajax(url, data, 'get', success, error);
+}

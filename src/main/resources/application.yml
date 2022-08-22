@@ -30,9 +30,10 @@ spring:
       minimum-idle: 1
 
   # thymeleaf
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
+  #thymeleaf:
+  #  prefix: classpath:/templates/
+  #  suffix: .html
+  #  cache: false
 
   # jackson
   jackson:

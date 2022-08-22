@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.calendar.vo.com.ComVo;
 
+import java.time.LocalDateTime;
+
 /**
  * @author xiangqian
  * @date 00:24 2022/08/17
@@ -22,10 +24,10 @@ public class EventVo extends ComVo {
     @ApiModelProperty("事件内容")
     private String content;
 
-    @ApiModelProperty("事件开始时间（时间戳）")
-    private Long startTime;
+    @ApiModelProperty("事件开始时间")
+    private LocalDateTime startTime;
 
-    @ApiModelProperty("事件结束时间（时间戳）")
-    private Long endTime;
+    @ApiModelProperty("事件结束时间")
+    private LocalDateTime endTime;
 
 }

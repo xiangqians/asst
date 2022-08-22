@@ -19,9 +19,17 @@ public class EventPageVoParam extends PageRequest {
     @ApiModelProperty("事件标题")
     private String title;
 
+    @ApiModelProperty("事件url")
+    private String url;
+
+    @ApiModelProperty("事件内容")
+    private String content;
+
     @Override
     public void post() {
         title = StringUtils.trimToNull(title);
+        url = StringUtils.trimToNull(url);
+        content = StringUtils.trimToNull(content);
         super.post();
     }
 
@@ -31,6 +39,8 @@ public class EventPageVoParam extends PageRequest {
         if (type == EventPoParam.class) {
             EventPoParam poParam = new EventPoParam();
             poParam.setTitle(getTitle());
+            poParam.setUrl(getUrl());
+            poParam.setContent(getContent());
             return (T) poParam;
         }
 

@@ -8,6 +8,7 @@ import org.calendar.o.PoParam;
 import org.calendar.po.param.EventPoParam;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.groups.Default;
 
 /**
  * @author xiangqian

@@ -7,6 +7,7 @@ import org.calendar.mapper.EventMapper;
 import org.calendar.pagination.Page;
 import org.calendar.pagination.PageRequest;
 import org.calendar.po.EventPo;
+import org.calendar.po.NotePo;
 import org.calendar.po.param.EventPoParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -33,6 +34,13 @@ public class EventDaoImpl implements EventDao {
         if (Objects.nonNull(poParam.getTitle())) {
             lambdaQueryWrapper.like(EventPo::getTitle, poParam.getTitle());
         }
+        if (Objects.nonNull(poParam.getUrl())) {
+            lambdaQueryWrapper.like(EventPo::getUrl, poParam.getUrl());
+        }
+        if (Objects.nonNull(poParam.getContent())) {
+            lambdaQueryWrapper.like(EventPo::getContent, poParam.getContent());
+        }
+        lambdaQueryWrapper.orderByDesc(EventPo::getCreateTime);
         return DaoHelper.queryForPage(eventMapper, pageRequest, lambdaQueryWrapper);
     }
 

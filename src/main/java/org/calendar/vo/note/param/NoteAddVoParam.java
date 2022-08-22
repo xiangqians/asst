@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.calendar.o.PoParam;
 import org.calendar.o.VoParam;
 import org.calendar.po.param.NotePoParam;
+import org.calendar.validation.groups.Add;
+import org.calendar.validation.groups.Modify;
 import org.springframework.util.Assert;
 
 import javax.validation.constraints.NotBlank;
@@ -20,8 +22,10 @@ import java.util.Objects;
 @ApiModel(description = "新增笔记信息")
 public class NoteAddVoParam implements VoParam {
 
-    @NotBlank(message = "笔记标题不能为空")
-    @ApiModelProperty(value = "笔记标题", required = true)
+    protected static final String API_PROPERTY_TITLE = "笔记标题";
+
+    @NotBlank(message = "笔记标题不能为空", groups = {Add.class, Modify.class})
+    @ApiModelProperty(value = API_PROPERTY_TITLE, required = true)
     private String title;
 
     @ApiModelProperty("笔记内容")
@@ -33,7 +37,7 @@ public class NoteAddVoParam implements VoParam {
     @Override
     public void post() {
         title = StringUtils.trimToNull(title);
-        content = StringUtils.trim(content);
+        content = StringUtils.trimToEmpty(content);
         if (Objects.nonNull(weight)) {
             Assert.isTrue(weight >= 0, "笔记权重必须大于0");
         }

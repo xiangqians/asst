@@ -6,6 +6,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.calendar.o.PoParam;
 import org.calendar.po.param.NotePoParam;
+import org.calendar.validation.groups.Modify;
 
 import javax.validation.constraints.NotBlank;
 
@@ -17,7 +18,7 @@ import javax.validation.constraints.NotBlank;
 @ApiModel(description = "修改笔记信息")
 public class NoteModifyVoParam extends NoteAddVoParam {
 
-    @NotBlank(message = "笔记id不能为空")
+    @NotBlank(message = "笔记id不能为空", groups = {Modify.class})
     @ApiModelProperty(value = "笔记id", required = true)
     private String id;
 
