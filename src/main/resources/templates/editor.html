@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Note Editor</title>
+
+    <!-- editor.css -->
+    <link rel="stylesheet" th:href="${#request.contextPath} + '/lib/editor-0.1.0/editor.css'">
+
+    <!-- jquery.datetimepicker.min.css -->
+    <link rel="stylesheet" type="text/css"
+          th:href="${#request.contextPath} + '/lib/datetimepicker/jquery.datetimepicker.min.css'">
+
+    <style type="text/css">
+        body {
+            padding: 0;
+            margin: 0;
+            background-color: #f9f9f7;
+        }
+
+        .editor-wrapper {
+            max-width: 1500px;
+            padding: 10px;
+            margin: 60px auto;
+        }
+    </style>
+</head>
+<body>
+<div class="editor-wrapper">
+    <input name="title" class="title" type="text" placeholder="Title">
+    <textarea id="editor" placeholder="Content here ...." style="display: none;"></textarea>
+    <div id="table" style="margin-top: 10px"></div>
+</div>
+</body>
+</html>
+
+<!-- editor.js -->
+<script th:src="${#request.contextPath} + '/lib/editor-0.1.0/editor.js'"></script>
+<script th:src="${#request.contextPath} + '/lib/editor-0.1.0/marked.js'"></script>
+<script th:src="${#request.contextPath} + '/lib/zepto-v1.2.0/zepto.min.js'"></script>
+
+<!-- md5.js -->
+<script th:src="${#request.contextPath} + '/lib/md5-2.16.0/main.min.js'"></script>
+
+<!-- jquery.js -->
+<script th:src="${#request.contextPath} + '/lib/jquery-3.6.0/main.min.js'"></script>
+
+<!-- jquery.datetimepicker.full.js -->
+<script th:src="${#request.contextPath} + '/lib/datetimepicker/jquery.datetimepicker.full.min.js'"></script>
+
+<!-- utils.js -->
+<script th:src="${#request.contextPath} + '/js/utils.js'"></script>
+
+<!-- editor.js -->
+<script th:src="${#request.contextPath} + '/js/editor.js'"></script>
+
+<!-- table.js -->
+<script th:src="${#request.contextPath} + '/js/table.js'"></script>
+
+<!-- Module -->
+<script>
+    let utilsModule = UtilsModule();
+    let editorModule = EditorModule();
+    let tableModule = TableModule(utilsModule);
+</script>
+
+<!-- req -->
+<script th:inline="javascript">
+    let requestParams = utilsModule.Utils.getRequestParams();
+    // console.log('requestParams', requestParams);
+    let id = requestParams.get('id');
+    let type = requestParams.get('type');
+    // console.log('id', id);
+    // console.log('type', type);
+
+    // context-path
+    const contextPath = [[${#httpServletRequest.getContextPath()}]] + '';
+
+    // url
+    let getUrl = null;
+    let putUrl = null;
+    // table
+    let tableFields = null;
+
+    // note
+    if (type === 'note') {
+        getUrl = contextPath + '/note/queryById/' + id;
+        putUrl = contextPath + '/note/updateById';
+        tableFields = [
+            { code: 'id', name: 'ID', type: 'hidden' },
+            { code: 'weight', name: '权重', type: 'number' },
+        ];
+    }
+    // event
+    else if (type === 'event') {
+        getUrl = contextPath + '/event/queryById/' + id;
+        putUrl = contextPath + '/event/updateById';
+        tableFields = [
+            { code: 'id', name: 'ID', type: 'hidden' },
+            { code: 'url', name: '链接' },
+            { code: 'startTime', name: '事件开始时间*', type: 'date' },
+            { code: 'endTime', name: '事件结束时间*', type: 'date' },
+        ];
+    }
+
+    let data = null;
+    let title = null;
+    let content = null;
+    utilsModule.Utils.Http.get(getUrl, null, function (resp) {
+        data = resp.body;
+        title = data.title;
+        content = data.content;
+    });
+
+    // init
+    tableFields.forEach(function (tableField) {
+        tableField.value = data[tableField.code];
+    });
+
+    // 设置html标题
+    $($('title')[0]).text('[' + type + '] ' + title);
+
+</script>
+
+<!-- title & content -->
+<script>
+    // editor
+    // https://github.com/lepture/editor
+    let editor = new editorModule.Editor();
+    editor.setValue(content);
+
+    // 触发预览
+    editor.togglePreview();
+
+    function getTitle() {
+        return $($('input[name=title]')[0]).val();
+    }
+
+    function setTitle(title) {
+        $($('input[name=title]')[0]).val(title);
+        return true;
+    }
+
+    function getContent() {
+        return editor.getValue();
+    }
+
+    function setContent(content) {
+        editor.setValue(content);
+        return true;
+    }
+
+    // 设置标题
+    setTitle(title);
+</script>
+
+<!-- Table -->
+<script>
+    // table
+    // const tableFields = [
+    //     { code: 'id', name: 'ID', value: id, type: 'hidden' },
+    //     { code: 'weight', name: '权重', value: weight, type: 'number' },
+    // ];
+
+    function CustomTable(title, $element, fields, url, type, clean, callback) {
+        // 借用构造函数，将会继承父类构造函数的属性
+        tableModule.Table.call(this, title, $element, fields, url, type, clean, callback);
+    };// 解决了组合式两次调用构造函数属性的缺点
+
+    // 将子类的原型指向父类原型的一个副本。
+    // 注意：要执行该动作后才能在子类的prototype上定义方法，否则没用。
+    utilsModule.Utils.Object.inherit(CustomTable, tableModule.Table);
+
+    /**
+     * 重写父类getParams方法
+     * @returns {{}}
+     * @private
+     */
+    CustomTable.prototype.getParams = function () {
+        let params = tableModule.Table.prototype.getParams.apply(this);
+        params.title = getTitle();
+        params.content = getContent();
+        return params;
+    }
+
+    CustomTable.prototype.getHash = function () {
+        return md5(JSON.stringify(this.getParams()));
+    }
+
+    let table = new CustomTable('', $('#table'), tableFields, putUrl, 'put', false, function () {
+        editor.setHash(table.getHash());
+        alert('保存成功!');
+    });
+
+    editor.setHash(table.getHash());
+</script>
+
+<!-- window -->
+<script>
+    window.onbeforeunload = function (e) {
+        var e = window.event || e;
+        if (editor.getHash() !== table.getHash()) {
+            e.returnValue = ("数据发生改变!");
+        }
+    }
+</script>

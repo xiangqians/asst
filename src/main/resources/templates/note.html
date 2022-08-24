@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- page.css -->
+    <link th:href="${#request.contextPath} + '/css/page.css'" rel="stylesheet">
+
+</head>
+<body>
+
+
+<div id="page"></div>
+
+<div id="table" style="margin-top: 100px"></div>
+
+</body>
+</html>
+
+<!-- jquery.js -->
+<script th:src="${#request.contextPath} + '/lib/jquery-3.6.0/main.min.js'"></script>
+
+<!-- utils.js -->
+<script th:src="${#request.contextPath} + '/js/utils.js'"></script>
+
+<!-- page.js -->
+<script th:src="${#request.contextPath} + '/js/page.js'"></script>
+
+<!-- table.js -->
+<script th:src="${#request.contextPath} + '/js/table.js'"></script>
+
+<script th:inline="javascript">
+    let utilsModule = UtilsModule();
+    let pageModule = PageModule(utilsModule);
+    let tableModule = TableModule(utilsModule);
+
+    // context-path
+    const contextPath = [[${#httpServletRequest.getContextPath()}]] + '';
+
+    // page
+    const fields = [
+        { code: 'id', name: 'ID' },
+        { code: 'title', name: '标题' },
+        { code: 'content', name: '内容' },
+        { code: 'weight', name: '权重' },
+        { code: 'createTime', name: '创建时间' },
+        { code: 'updateTime', name: '修改时间' },
+        { code: 'operate', name: '操作' },
+    ];
+    const searchFields = [
+        { code: 'title', name: '标题' },
+        { code: 'content', name: '内容' },
+    ];
+
+    function CustomPage($element, fields, searchFields, ur) {
+        // 借用构造函数，将会继承父类构造函数的属性
+        pageModule.Page.call(this, $element, fields, searchFields, ur);
+    };// 解决了组合式两次调用构造函数属性的缺点
+
+    // 将子类的原型指向父类原型的一个副本。
+    // 注意：要执行该动作后才能在子类的prototype上定义方法，否则没用。
+    utilsModule.Utils.Object.inherit(CustomPage, pageModule.Page);
+
+    /**
+     * 重写父类view方法
+     * @returns {{}}
+     * @private
+     */
+    CustomPage.prototype.view = function (event) {
+        let id = $(event.target).attr('id');
+        window.open(contextPath + '/route/editor?type=note&id=' + id, '_blank');
+    }
+
+    let page = new CustomPage($('#page'), fields, searchFields, contextPath + '/note/page');
+    page.load();
+
+    // table
+    const tableFields = [
+        { code: 'title', name: '标题*' },
+        { code: 'content', name: '内容', type: 'textarea' },
+        { code: 'weight', name: '权重', type: 'number' },
+    ];
+    new tableModule.Table('新增笔记信息', $('#table'), tableFields, contextPath + '/note/save', 'post', true, function () {
+        page.reload();
+    });
+
+</script>
+
+
+

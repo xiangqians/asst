@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
 
     <!-- fullcalendar.css -->
-    <link href='/lib/fullcalendar-5.11.2/lib/main.min.css' rel='stylesheet' />
+    <link th:href="${#request.contextPath} + '/lib/fullcalendar-5.11.2/lib/main.min.css'" rel='stylesheet' />
 
     <!-- style -->
     <style>
@@ -81,20 +81,25 @@
 </html>
 
 <!-- fullcalendar.js -->
-<script src='/lib/fullcalendar-5.11.2/lib/main.min.js'></script>
-<script src='/lib/fullcalendar-5.11.2/lib/locales-all.min.js'></script>
+<script th:src="${#request.contextPath} + '/lib/fullcalendar-5.11.2/lib/main.min.js'"></script>
+<script th:src="${#request.contextPath} + '/lib/fullcalendar-5.11.2/lib/locales-all.min.js'"></script>
 
 <!-- utils.js -->
-<script src='/js/utils.js'></script>
+<script th:src="${#request.contextPath} + '/js/utils.js'"></script>
 
 <!-- editor.js -->
-<script src='/js/editor.js'></script>
+<script th:src="${#request.contextPath} + '/js/editor.js'"></script>
 
 <!-- fullcalendar -->
-<script>
+<script th:inline="javascript">
+    let utilsModule = UtilsModule();
+
+    // context-path
+    const contextPath = [[${#httpServletRequest.getContextPath()}]] + '';
+
     var initialLocaleCode = 'zh-cn';
 
-    let doubleClickEvent = new Utils.DoubleClickEvent();
+    let doubleClickEvent = new utilsModule.Utils.DoubleClickEvent();
 
     document.addEventListener('DOMContentLoaded', function () {
         var initialTimeZone = 'local';
@@ -142,7 +147,7 @@
             // slotEventOverlap: false,
 
             events: {
-                url: '/json/events.json',
+                url: contextPath + '/json/events.json',
                 failure: function () {
                     document.getElementById('warning').style.display = 'inline'; // show
                 }
@@ -214,7 +219,7 @@
 
         // load the list of available timezones, build the <select> options
         // it's HIGHLY recommended to use a different library for network requests, not this internal util func
-        FullCalendar.requestJson('GET', '/json/time-zones.json', {}, function (timeZones) {
+        FullCalendar.requestJson('GET', contextPath + '/json/time-zones.json', {}, function (timeZones) {
             timeZones.forEach(function (timeZone) {
                 var optionEl = document.createElement('option');
                 optionEl.value = timeZone;

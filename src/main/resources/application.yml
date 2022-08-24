@@ -17,7 +17,7 @@ spring:
     driver-class-name: org.calendar.driver.SQLiteDriver
     #url: jdbc:sqlite:E:\workspace\idea-my\calendar\src\main\resources\db\calendar.db3
     #url: jdbc:sqlite:resource:db/calendar.db3
-    url: jdbc:sqlite:calendar.db3
+    url: jdbc:sqlite:${CALENDAR_DB_PATH:calendar.db3}
     username:
     password:
 
@@ -30,10 +30,10 @@ spring:
       minimum-idle: 1
 
   # thymeleaf
-  #thymeleaf:
-  #  prefix: classpath:/templates/
-  #  suffix: .html
-  #  cache: false
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
 
   # jackson
   jackson:

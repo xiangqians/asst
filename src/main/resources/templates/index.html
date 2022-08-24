@@ -7,7 +7,7 @@
     <title>Index</title>
 
     <!-- index.css -->
-    <link href="/css/index.css" rel="stylesheet">
+    <link th:href="${#request.contextPath} + '/css/index.css'" rel="stylesheet">
 </head>
 <body>
 <div class="container-fluid">
@@ -41,13 +41,14 @@
 </html>
 
 <!-- jquery.js -->
-<script src="/lib/jquery-3.6.0/main.min.js"></script>
+<script th:src="${#request.contextPath} + '/lib/jquery-3.6.0/main.min.js'"></script>
 
 <!-- utils.js -->
-<script src="/js/utils.js"></script>
+<script th:src="${#request.contextPath} + '/js/utils.js'"></script>
 
 <!-- tab页切换处理 -->
-<script>
+<script th:inline="javascript">
+    let utilsModule = UtilsModule();
 
     // 设置激活的tab页
     function setActiveNavItem(value) {
@@ -72,16 +73,20 @@
     }
 
     $(function () {
+        // context-path
+        const contextPath = [[${#httpServletRequest.getContextPath()}]] + '';
+        // console.log('contextPath', contextPath);
+
         // tab页url映射
         const urlMap = new Map();
-        urlMap.set('note', '/html/note.html');
-        urlMap.set('event', '/html/event.html');
-        urlMap.set('calendar', '/html/calendar.html');
+        urlMap.set('note', contextPath + '/route/note');
+        urlMap.set('event', contextPath + '/route/event');
+        urlMap.set('calendar', contextPath + '/route/calendar');
 
         const activeNavItemName = 'ACTIVE_NAV_ITEM';
 
         // 设置iframe默认tab页
-        let activeNavItemValue = Utils.Storage.get(activeNavItemName);
+        let activeNavItemValue = utilsModule.Utils.Storage.get(activeNavItemName);
         activeNavItemValue = activeNavItemValue ? activeNavItemValue : 'note';
         // console.log('activeNavItemValue', activeNavItemValue);
         setActiveNavItem(activeNavItemValue);
@@ -94,7 +99,7 @@
                 let $navLink = $($(this).children('.nav-link')[0]);
                 let value = $navLink.attr('value');
                 if (setActiveNavItem(value)) {
-                    Utils.Storage.set(activeNavItemName, value);
+                    utilsModule.Utils.Storage.set(activeNavItemName, value);
                     $("#iframe").attr('src', urlMap.get(value));
                 }
             });

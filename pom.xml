@@ -73,12 +73,10 @@
         </dependency>
 
         <!-- spring-boot-starter-thymeleaf -->
-        <!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-        -->
 
         <!-- spring-boot-starter-validation -->
         <dependency>
@@ -204,6 +202,7 @@
                 <includes>
                     <include>*.yml</include>
                     <include>*.xml</include>
+                    <include>templates/**</include>
                 </includes>
             </resource>
 
@@ -215,8 +214,6 @@
                     <include>META-INF/**</include>
                     <include>mybatis/**</include>
                     <include>static/**</include>
-                    <include>templates/**</include>
-                    <include>templates-test/**</include>
                 </includes>
             </resource>
         </resources>

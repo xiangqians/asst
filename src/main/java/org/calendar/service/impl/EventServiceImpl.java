@@ -32,7 +32,13 @@ public class EventServiceImpl implements EventService {
     @Transactional(timeout = 10, readOnly = true)
     @Override
     public Page<EventVo> queryForPage(EventPageVoParam voParam) {
-        return eventDao.queryForPage(voParam, voParam.convertToPoParam(EventPoParam.class)).convert(poToVoFunction);
+        return eventDao.queryForPage(voParam, voParam.convertToPoParam(EventPoParam.class)).convert(po -> {
+            EventVo vo = po.convertToVo(EventVo.class);
+            if (Objects.nonNull(po.getContent()) && po.getContent().length() > 20) {
+                vo.setContent(po.getContent().substring(0, 20) + " [更多]");
+            }
+            return vo;
+        });
     }
 
     @Transactional(timeout = 10, readOnly = true)
