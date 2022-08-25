@@ -201,7 +201,7 @@ public class MybatisGenerator {
 
         // 包配置
         fastAutoGenerator.packageConfig(builder -> builder
-                .parent("org.calendar")
+                .parent("org.asst")
                 .moduleName(moduleName)
                 .entity("po")
                 .service("service")

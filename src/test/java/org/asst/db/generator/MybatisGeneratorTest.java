@@ -13,7 +13,7 @@ public class MybatisGeneratorTest {
                 // db config
                 .dbConfig()
                 .driverClassName("org.sqlite.JDBC")
-                .url("jdbc:sqlite:E:\\workspace\\idea-my\\calendar\\src\\main\\resources\\db\\calendar.db3")
+                .url("jdbc:sqlite:E:\\workspace\\idea-my\\asst\\src\\main\\resources\\db\\calendar.db3")
                 .username("")
                 .password("")
                 .and()
