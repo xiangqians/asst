@@ -80,7 +80,8 @@ function PageModule(utilsModule) {
             self.$search = $(self.$element.find('div[search]')[0]);
             self.searchFields.forEach(function (searchField) {
                 $('<span>' + searchField.name + '：</span>').appendTo(self.$search);
-                let $input = $('<input search name="' + searchField.code + '">');
+                // autocomplete="off": 禁止历史的显示
+                let $input = $('<input search name="' + searchField.code + '" autocomplete="off">');
                 $input.appendTo(self.$search);
 
                 // input按键监听
@@ -185,16 +186,26 @@ function PageModule(utilsModule) {
                 let dat = data[i];
                 let $tr = $('<tr></tr>');
                 self.fields.forEach(function (field) {
+                    // operate
                     if ('operate' === field.code) {
-                        return;
+                        let $td = $('<td></td>');
+                        let value = field.value;
+                        value.forEach(function (elem) {
+                            let $a = $('<a id="' + dat.id + '" href="javascript:;">' + elem.name + '</a>');
+                            $a.on('click', function (event) {
+                                elem.click(event, dat);
+                            });
+                            $td.append('&nbsp;&nbsp;');
+                            $a.appendTo($td);
+                        });
+                        $td.append('&nbsp;&nbsp;');
+                        $td.appendTo($tr);
                     }
-                    $('<td>' + dat[field.code] + '</td>').appendTo($tr);
+                    //
+                    else {
+                        $('<td>' + dat[field.code] + '</td>').appendTo($tr);
+                    }
                 });
-                let $td = $('<td></td>');
-                let $a = $('<a id="' + dat.id + '" href="javascript:;">查看</a>');
-                $a.on('click', self.view);
-                $a.appendTo($td);
-                $td.appendTo($tr);
                 $tr.appendTo(self.$tbody);
             }
         }, function (resp) {

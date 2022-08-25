@@ -2,6 +2,13 @@ function EditorModule() {
 
     let obj = {};
 
+    /**
+     * https://github.com/lepture/editor
+     *
+     * @param elementId
+     * @param value
+     * @constructor
+     */
     obj.Editor = function (elementId, value) {
         // Having done this, an editor instance can be created:
         // this.editor = new Editor();

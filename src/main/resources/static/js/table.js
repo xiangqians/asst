@@ -108,7 +108,8 @@ function TableModule(utilsModule) {
             let $td = $('<td></td>');
 
             // input
-            let $input = $('<input name="' + field.code + '"/>');
+            // autocomplete="off": 禁止历史的显示
+            let $input = $('<input name="' + field.code + '" autocomplete="off"/>');
             // field type
             // date
             if (field.type === 'date') {

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
 
+    <link th:href="${#request.contextPath} + '/favicon.ico'" rel="shortcut icon">
+
     <!-- fullcalendar.css -->
     <link th:href="${#request.contextPath} + '/lib/fullcalendar-5.11.2/lib/main.min.css'" rel='stylesheet' />
 
@@ -80,6 +82,9 @@
 </body>
 </html>
 
+<!-- jquery.js -->
+<script th:src="${#request.contextPath} + '/lib/jquery-3.6.0/main.min.js'"></script>
+
 <!-- fullcalendar.js -->
 <script th:src="${#request.contextPath} + '/lib/fullcalendar-5.11.2/lib/main.min.js'"></script>
 <script th:src="${#request.contextPath} + '/lib/fullcalendar-5.11.2/lib/locales-all.min.js'"></script>
@@ -94,10 +99,21 @@
 <script th:inline="javascript">
     let utilsModule = UtilsModule();
 
+    // Date扩展
+    utilsModule.Utils.Date.expand();
+
     // context-path
     const contextPath = [[${#httpServletRequest.getContextPath()}]] + '';
 
     var initialLocaleCode = 'zh-cn';
+
+    // 初始化日期
+    let requestParams = utilsModule.Utils.getRequestParams();
+    let initialDate = requestParams.get('initialDate');
+    if (!(initialDate)) {
+        initialDate = new Date().format('yyyy-MM-dd');
+    }
+    // console.log('initialDate', initialDate);
 
     let doubleClickEvent = new utilsModule.Utils.DoubleClickEvent();
 
@@ -131,7 +147,9 @@
             // this allows things to be dropped onto the calendar
             // droppable: true,
 
-            initialDate: '2020-09-12',
+            // 初始化日期
+            initialDate: initialDate,
+
             // can click day/week names to navigate views
             // 允许天/周名称是否可点击，包括周次weekNumber，点击之后可以跳转到对于的天/周视图，默认false
             navLinks: true,
@@ -146,12 +164,50 @@
             // 相同时间段的多个日程视觉上是否允许重叠，默认true允许
             // slotEventOverlap: false,
 
-            events: {
-                url: contextPath + '/json/events.json',
-                failure: function () {
-                    document.getElementById('warning').style.display = 'inline'; // show
-                }
+            // events
+            // events: {
+            //     url: contextPath + '/json/events.json',
+            //     success: function () {
+            //         console.log('success');
+            //     },
+            //     failure: function () {
+            //         document.getElementById('warning').style.display = 'inline'; // show
+            //     }
+            // },
+            // fullcalendar-5.11.2
+            // https://fullcalendar.io/docs/events-function
+            events: function (info, successCallback, failureCallback) {
+                // console.log('info', info);
+                // console.log('events:', info.start.format(), '->', info.end.format());
+                // console.log('successCallback', successCallback);
+                // console.log('failureCallback', failureCallback);
+                let params = {
+                    current: 1,
+                    size: 10000,
+                    startTime: info.start.format('yyyy-MM-dd HH:mm:ss'),
+                    endTime: info.end.format('yyyy-MM-dd HH:mm:ss')
+                };
+                utilsModule.Utils.Http.get(contextPath + '/event/page', params, function (resp) {
+                    // console.log(resp);
+                    let data = resp.body.data;
+                    if (!(data) || data.length === 0) {
+                        return;
+                    }
+
+                    let events = [];
+                    data.forEach(function (elem) {
+                        events.push({
+                            id: elem.id,
+                            title: elem.title,
+                            url: elem.url,
+                            start: elem.startTime,
+                            end: elem.endTime,
+                        });
+                    })
+                    successCallback(events);
+                });
             },
+
             loading: function (bool) {
                 if (bool) {
                     loadingEl.style.display = 'inline'; // show
@@ -181,9 +237,13 @@
             },
 
             // 点击日历日程事件
-            eventClick: function (arg) {
+            // fullcalendar-5.11.2
+            // https://fullcalendar.io/docs/eventClick
+            eventClick: function (info) {
                 doubleClickEvent.click(function () {
-                    console.log('eventClick', arg);
+                    // console.log('info', info);
+                    let id = info.event.id;
+                    window.open(contextPath + '/route/editor?type=event&id=' + id, '_blank');
                 });
             },
 
@@ -234,6 +294,9 @@
         timeZoneSelectorEl.addEventListener('change', function () {
             calendar.setOption('timeZone', this.value);
         });
-    });
 
+        // 跳到指定日期
+        // console.log('gotoDate', calendar.gotoDate)
+        // calendar.gotoDate('2020-01-01')
+    });
 </script>

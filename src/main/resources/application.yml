@@ -6,7 +6,6 @@ server:
     session:
       persistent: false
 
-
 spring:
   application:
     name: @artifactId@
@@ -16,10 +15,10 @@ spring:
   datasource:
     name: default
     #driver-class-name: org.sqlite.JDBC
-    driver-class-name: org.calendar.driver.SQLiteDriver
-    #url: jdbc:sqlite:E:\workspace\idea-my\calendar\src\main\resources\db\calendar.db3
-    #url: jdbc:sqlite:resource:db/calendar.db3
-    url: jdbc:sqlite:${CALENDAR_DB_PATH:calendar.db3}
+    driver-class-name: org.asst.driver.SQLiteDriver
+    #url: jdbc:sqlite:E:\workspace\idea-my\asst\src\main\resources\db\asst.db3
+    #url: jdbc:sqlite:resource:db/asst.db3
+    url: jdbc:sqlite:${CALENDAR_DB_PATH:asst.db3}
     username:
     password:
 

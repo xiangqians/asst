@@ -39,13 +39,25 @@
 
     // page
     const fields = [
-        { code: 'id', name: 'ID' },
+        // { code: 'id', name: 'ID' },
         { code: 'title', name: '标题' },
         { code: 'content', name: '内容' },
         { code: 'weight', name: '权重' },
         { code: 'createTime', name: '创建时间' },
         { code: 'updateTime', name: '修改时间' },
-        { code: 'operate', name: '操作' },
+        {
+            code: 'operate',
+            name: '操作',
+            value: [
+                {
+                    name: '查看',
+                    click: function (event) {
+                        let id = $(event.target).attr('id');
+                        window.open(contextPath + '/route/editor?type=note&id=' + id, '_blank');
+                    }
+                }
+            ]
+        },
     ];
     const searchFields = [
         { code: 'title', name: '标题' },
@@ -66,7 +78,7 @@
      * @returns {{}}
      * @private
      */
-    CustomPage.prototype.view = function (event) {
+    CustomPage.prototype.view = function (event) { // 废除，使用 [code: 'operate'] 处理逻辑
         let id = $(event.target).attr('id');
         window.open(contextPath + '/route/editor?type=note&id=' + id, '_blank');
     }

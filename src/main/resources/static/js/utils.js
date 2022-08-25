@@ -243,5 +243,35 @@ function UtilsModule() {
         subType.prototype = new Fn();
     };
 
+    obj.Utils.Date = function () {
+    }
+
+    obj.Utils.Date.expand = function () {
+        // 对Date的扩展，将Date转化为指定格式的String
+        // 月(M)、日(d)、小时(H)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符，
+        // 年(y)可以用 1-4 个占位符，毫秒(S)只能用1个占位符(是 1-3 位的数字)
+        window.Date.prototype.format = function (fmt) {
+            let o = {
+                "M+": this.getMonth() + 1, // 月份，//获取当前月份(0-11,0代表1月)
+                "d+": this.getDate(), // 日，获取当前日(1-31)
+                "H+": this.getHours(), // 小时， 获取当前小时数(0-23)
+                "m+": this.getMinutes(), // 分，获取当前分钟数(0-59)
+                "s+": this.getSeconds(), // 秒，获取当前秒数(0-59)
+                "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+                "S": this.getMilliseconds() //毫秒，获取当前毫秒数(0-999)
+            };
+
+            if (!(fmt)) {
+                fmt = "yyyy-MM-dd HH:mm:ss.S";
+            }
+            if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (let k in o) {
+                if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            }
+            return fmt;
+        }
+
+    }
+
     return obj;
 }

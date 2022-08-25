@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Note Editor</title>
 
+    <link th:href="${#request.contextPath} + '/favicon.ico'" rel="shortcut icon">
+
     <!-- editor.css -->
     <link rel="stylesheet" th:href="${#request.contextPath} + '/lib/editor-0.1.0/editor.css'">
 
@@ -21,7 +23,16 @@
         .editor-wrapper {
             max-width: 1500px;
             padding: 10px;
-            margin: 60px auto;
+            margin: 10px auto;
+        }
+
+        /*
+        how to set size of the eidtor?
+        https://github.com/lepture/editor/issues/89
+        https://github.com/lepture/editor/issues/100
+        */
+        .CodeMirror {
+            height: 650px !important;
         }
     </style>
 </head>
@@ -124,8 +135,6 @@
 
 <!-- title & content -->
 <script>
-    // editor
-    // https://github.com/lepture/editor
     let editor = new editorModule.Editor();
     editor.setValue(content);
 
