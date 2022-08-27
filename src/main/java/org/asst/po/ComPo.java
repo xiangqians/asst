@@ -48,8 +48,8 @@ public abstract class ComPo implements Po {
                 throw new RuntimeException(e);
             }
             vo.setId(getId());
-            vo.setCreateTime(Optional.ofNullable(getCreateTime()).filter(timestamp -> timestamp > 0L).map(DateUtils::timestampToDate).orElse(null));
-            vo.setUpdateTime(Optional.ofNullable(getUpdateTime()).filter(timestamp -> timestamp > 0L).map(DateUtils::timestampToDate).orElse(null));
+            vo.setCreateTime(Optional.ofNullable(getCreateTime()).filter(timestamp -> timestamp > 0L).map(DateUtils::timestampToLocalDateTime).orElse(null));
+            vo.setUpdateTime(Optional.ofNullable(getUpdateTime()).filter(timestamp -> timestamp > 0L).map(DateUtils::timestampToLocalDateTime).orElse(null));
             return (T) vo;
         }
 

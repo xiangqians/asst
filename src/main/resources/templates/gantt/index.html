@@ -15,13 +15,19 @@
 
 <div id="page"></div>
 
-<div id="table" style="margin-top: 100px"></div>
+<div style="margin-top: 50px; text-align: center;">
+    <a th:href="${#request.contextPath} + '/route/gantt/gantt'" target="_blank" style="font-size: 30px">甘特图</a>
+</div>
+
+<div id="table" style="margin-top: 50px"></div>
+
 
 </body>
 </html>
 
 <!-- jquery.js -->
-<script th:src="${#request.contextPath} + '/lib/jquery-3.6.0/main.min.js'"></script>
+<script th:src="${#request.contextPath} + '/lib/jQuery.Gantt-master/js/jquery.min.js'"
+        type="text/javascript"></script>
 
 <!-- jquery.datetimepicker.full.js -->
 <script th:src="${#request.contextPath} + '/lib/datetimepicker/jquery.datetimepicker.full.min.js'"></script>
@@ -46,11 +52,10 @@
     // page
     const fields = [
         // { code: 'id', name: 'ID' },
-        { code: 'title', name: '标题' },
-        { code: 'url', name: '链接' },
+        { code: 'name', name: '名称' },
+        { code: 'desc', name: '描述' },
         { code: 'content', name: '内容' },
-        { code: 'startTime', name: '事件开始时间' },
-        { code: 'endTime', name: '事件结束时间' },
+        { code: 'weight', name: '权重' },
         { code: 'createTime', name: '创建时间' },
         { code: 'updateTime', name: '修改时间' },
         {
@@ -61,29 +66,24 @@
                     name: '查看',
                     click: function (event) {
                         let id = $(event.target).attr('id');
-                        window.open(contextPath + '/route/editor?type=event&id=' + id, '_blank');
+                        window.open(contextPath + '/route/editor?type=gantt&id=' + id, '_blank');
                     }
                 },
-                {
-                    name: '日历',
-                    click: function (event, data) {
-                        // console.log('event', event)
-                        // console.log('data', data)
-                        let id = $(event.target).attr('id');
-                        let startTime = data.startTime;
-                        startTime = startTime.substring(0, startTime.indexOf(' '));
-                        window.open(contextPath + '/route/calendar?initialDate=' + startTime, '_blank');
-                    }
-                }
+                // {
+                //     name: '甘特图',
+                //     click: function (event) {
+                //         let id = $(event.target).attr('id');
+                //         window.open(contextPath + '/route/gantt/gantt?id=' + id, '_blank');
+                //     }
+                // }
             ]
         },
     ];
     const searchFields = [
-        { code: 'title', name: '标题' },
-        { code: 'url', name: '链接' },
+        { code: 'name', name: '名称' },
+        { code: 'desc', name: '描述' },
         { code: 'content', name: '内容' },
     ];
-
 
     function CustomPage($element, fields, searchFields, ur) {
         // 借用构造函数，将会继承父类构造函数的属性
@@ -101,21 +101,26 @@
      */
     CustomPage.prototype.view = function (event) { // 废除，使用 [code: 'operate'] 处理逻辑
         let id = $(event.target).attr('id');
-        window.open(contextPath + '/route/editor?type=event&id=' + id, '_blank');
+        window.open(contextPath + '/route/editor?type=note&id=' + id, '_blank');
     }
 
-    let page = new CustomPage($('#page'), fields, searchFields, contextPath + '/event/page');
+    let page = new CustomPage($('#page'), fields, searchFields, contextPath + '/gantt/page');
     page.load();
 
     // table
     const tableFields = [
-        { code: 'title', name: '标题*' },
-        { code: 'url', name: '链接' },
-        { code: 'content', name: '内容', type: 'textarea' },
-        { code: 'startTime', name: '事件开始时间*', type: 'dateTime' },
-        { code: 'endTime', name: '事件结束时间*', type: 'dateTime' },
+        { code: 'name', name: '名称*' },
+        { code: 'desc', name: '描述' },
+
+        // value
+        { code: 'value.from', name: '甘特图开始时间*', type: 'date' },
+        { code: 'value.to', name: '甘特图结束时间*', type: 'date' },
+        { code: 'value.label', name: '甘特图标签' },
+        { code: 'value.desc', name: '甘特图描述' },
+
+        { code: 'weight', name: '权重', type: 'number' },
     ];
-    new tableModule.Table('新增事件信息', $('#table'), tableFields, contextPath + '/event/save', 'post', true, function () {
+    new tableModule.Table('新增甘特图信息', $('#table'), tableFields, contextPath + '/gantt/save', 'post', true, function () {
         page.reload();
     });
 

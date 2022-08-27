@@ -32,6 +32,12 @@
 
 [MD5](https://github.com/blueimp/JavaScript-MD5)
 
+# Gantt
+
+[官网](http://taitems.github.io/jQuery.Gantt/)
+
+[GitHub](https://github.com/taitems/jQuery.Gantt)
+
 
 
 

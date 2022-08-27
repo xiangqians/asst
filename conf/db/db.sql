@@ -40,3 +40,22 @@ CREATE INDEX idx_event_startTime ON event (`startTime`);
 DROP INDEX idx_event_startTime;
 PRAGMA INDEX_LIST('event');
 */
+
+-- -------------------------
+-- Table structure for gantt
+-- -------------------------
+DROP TABLE IF EXISTS `gantt`;
+CREATE TABLE `gantt` -- 甘特图信息表
+(
+    `id`          VARCHAR(32)  NOT NULL,     -- 甘特图id
+    `name`        VARCHAR(256) NOT NULL,     -- 甘特图名称
+    `desc`        VARCHAR(256) DEFAULT '',   -- 甘特图描述
+    `values`      TEXT         DEFAULT NULL, -- 甘特图值集合
+    `content`     TEXT         DEFAULT NULL, -- 甘特图内容
+    `weight`      INTEGER      DEFAULT 0,    -- 甘特图权重，会优先根据权重排序
+    `del_flag`    CHAR(1)      DEFAULT '0',  -- 删除标识，0-正常，1-删除
+    `create_time` INTEGER      DEFAULT 0,    -- 创建时间（时间戳）
+    `update_time` INTEGER      DEFAULT 0,    -- 修改时间（时间戳）
+    PRIMARY KEY (`id`)
+);
+

@@ -12,45 +12,68 @@ import java.time.format.DateTimeFormatter;
  */
 public class DateUtils {
 
-    public static final String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
-    private static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ofPattern(DEFAULT_PATTERN);
+    public static final String LOCAL_DATE_TIME_DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    private static final DateTimeFormatter LOCAL_DATE_TIME_DEFAULT_FORMATTER = DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_DEFAULT_PATTERN);
+
+    public static final String LOCAL_DATE_DEFAULT_PATTERN = "yyyy-MM-dd";
+    private static final DateTimeFormatter LOCAL_DATE_DEFAULT_FORMATTER = DateTimeFormatter.ofPattern(LOCAL_DATE_DEFAULT_PATTERN);
 
     public static LocalDateTime parseForLocalDateTime(String text) {
-        return parse(text, DEFAULT_FORMATTER);
+        return parseForLocalDateTime(text, LOCAL_DATE_TIME_DEFAULT_PATTERN);
     }
 
-    public static LocalDate format(String text, String pattern) {
-        return LocalDate.parse(text, DateTimeFormatter.ofPattern(pattern));
+    public static LocalDateTime parseForLocalDateTime(String text, String pattern) {
+        return parseForLocalDateTime(text, LOCAL_DATE_TIME_DEFAULT_PATTERN.equals(pattern) ? LOCAL_DATE_TIME_DEFAULT_FORMATTER : DateTimeFormatter.ofPattern(pattern));
     }
 
-    public static LocalDateTime parse(String text, String pattern) {
-        return parse(text, DateTimeFormatter.ofPattern(pattern));
-    }
-
-    public static LocalDateTime parse(String text, DateTimeFormatter dateTimeFormatter) {
+    public static LocalDateTime parseForLocalDateTime(String text, DateTimeFormatter dateTimeFormatter) {
         return LocalDateTime.parse(text, dateTimeFormatter);
     }
 
-    public static String format(LocalDateTime time) {
-        return format(time, DEFAULT_FORMATTER);
+    public static LocalDate parseForLocalDate(String text) {
+        return parseForLocalDate(text, LOCAL_DATE_DEFAULT_PATTERN);
     }
 
-    public static String format(LocalDateTime time, String pattern) {
-        return format(time, DateTimeFormatter.ofPattern(pattern));
+    public static LocalDate parseForLocalDate(String text, String pattern) {
+        return LocalDate.parse(text, LOCAL_DATE_DEFAULT_PATTERN.equals(pattern) ? LOCAL_DATE_DEFAULT_FORMATTER : DateTimeFormatter.ofPattern(pattern));
     }
 
-    public static String format(LocalDateTime time, DateTimeFormatter dateTimeFormatter) {
-        return dateTimeFormatter.format(time);
+    public static LocalDate parseForLocalDate(String text, DateTimeFormatter dateTimeFormatter) {
+        return LocalDate.parse(text, dateTimeFormatter);
     }
 
-    public static LocalDateTime timestampToDate(long timestamp) {
+    public static String format(LocalDateTime date) {
+        return format(date, LOCAL_DATE_TIME_DEFAULT_PATTERN);
+    }
+
+    public static String format(LocalDateTime date, String pattern) {
+        return format(date, LOCAL_DATE_TIME_DEFAULT_PATTERN.equals(pattern) ? LOCAL_DATE_TIME_DEFAULT_FORMATTER : DateTimeFormatter.ofPattern(pattern));
+    }
+
+    public static String format(LocalDateTime date, DateTimeFormatter dateTimeFormatter) {
+        return dateTimeFormatter.format(date);
+    }
+
+    public static LocalDateTime timestampToLocalDateTime(long timestamp) {
         Instant instant = Instant.ofEpochMilli(timestamp);
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 
-    public static long dateToTimestamp(LocalDateTime time) {
+    public static long dateToTimestamp(LocalDateTime date) {
         ZoneId zone = ZoneId.systemDefault();
-        return time.atZone(zone).toInstant().toEpochMilli();
+//        return date.atZone(zone).toEpochSecond(); // s
+        return date.atZone(zone).toInstant().toEpochMilli(); // ms
+    }
+
+    public static LocalDate timestampToLocalDate(long timestamp) {
+        Instant instant = Instant.ofEpochMilli(timestamp);
+        return LocalDate.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    public static long dateToTimestamp(LocalDate date) {
+//        return date.toEpochDay(); // day
+//        return date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond(); // s
+        return date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(); // ms
     }
 
 }

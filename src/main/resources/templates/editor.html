@@ -93,25 +93,49 @@
     // table
     let tableFields = null;
 
+    let titleFieldName = null;
+
     // note
     if (type === 'note') {
         getUrl = contextPath + '/note/queryById/' + id;
         putUrl = contextPath + '/note/updateById';
         tableFields = [
-            { code: 'id', name: 'ID', type: 'hidden' },
+            { code: 'id', name: 'ID*', type: 'hidden' },
             { code: 'weight', name: '权重', type: 'number' },
         ];
+        titleFieldName = 'title';
     }
     // event
     else if (type === 'event') {
         getUrl = contextPath + '/event/queryById/' + id;
         putUrl = contextPath + '/event/updateById';
         tableFields = [
-            { code: 'id', name: 'ID', type: 'hidden' },
+            { code: 'id', name: 'ID*', type: 'hidden' },
             { code: 'url', name: '链接' },
             { code: 'startTime', name: '事件开始时间*', type: 'date' },
             { code: 'endTime', name: '事件结束时间*', type: 'date' },
         ];
+        titleFieldName = 'title';
+    }
+    // gantt
+    else if (type === 'gantt') {
+        getUrl = contextPath + '/gantt/queryById/' + id;
+        putUrl = contextPath + '/gantt/updateById';
+        tableFields = [
+            { code: 'id', name: 'ID*', type: 'hidden' },
+            { code: 'name', name: '名称*' },
+            { code: 'desc', name: '描述' },
+
+            // value
+            { code: 'value.from', name: '甘特图开始时间*', type: 'date' },
+            { code: 'value.to', name: '甘特图结束时间*', type: 'date' },
+            { code: 'value.label', name: '甘特图标签' },
+            { code: 'value.desc', name: '甘特图描述' },
+
+            { code: 'content', name: '内容', type: 'textarea' },
+            { code: 'weight', name: '权重', type: 'number' },
+        ];
+        titleFieldName = 'name';
     }
 
     let data = null;
@@ -119,13 +143,22 @@
     let content = null;
     utilsModule.Utils.Http.get(getUrl, null, function (resp) {
         data = resp.body;
-        title = data.title;
+        title = data[titleFieldName];
         content = data.content;
     });
 
     // init
     tableFields.forEach(function (tableField) {
-        tableField.value = data[tableField.code];
+        let name = tableField.code;
+        let array = name.split('.');
+        if (array.length == 2) {
+            let obj = data[array[0]];
+            if (obj) {
+                tableField.value = obj[array[1]];
+            }
+        } else {
+            tableField.value = data[tableField.code];
+        }
     });
 
     // 设置html标题
@@ -187,7 +220,7 @@
      */
     CustomTable.prototype.getParams = function () {
         let params = tableModule.Table.prototype.getParams.apply(this);
-        params.title = getTitle();
+        params[titleFieldName] = getTitle();
         params.content = getContent();
         return params;
     }

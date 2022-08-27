@@ -12,7 +12,6 @@ import org.asst.vo.event.param.EventAddVoParam;
 import org.asst.vo.event.param.EventModifyVoParam;
 import org.asst.vo.event.param.EventPageVoParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,7 +20,7 @@ import javax.validation.Valid;
  * @author xiangqian
  * @date 22:14 2022/08/16
  */
-@Controller
+@RestController
 @RequestMapping("/event")
 @Api(value = "event", tags = "事件信息管理")
 public class EventController {
@@ -29,7 +28,6 @@ public class EventController {
     @Autowired
     private EventService eventService;
 
-    @ResponseBody
     @GetMapping("/page")
     @ApiOperation("事件信息分页查询")
     public Response<Page<EventVo>> page(@Valid EventPageVoParam voParam) throws Exception {
@@ -39,7 +37,6 @@ public class EventController {
                 .build();
     }
 
-    @ResponseBody
     @ApiOperation("根据id查询事件信息")
     @GetMapping("/queryById/{id}")
     @ApiImplicitParam(name = "id", value = "事件id", required = true)
@@ -50,7 +47,6 @@ public class EventController {
                 .build();
     }
 
-    @ResponseBody
     @ApiOperation("修改事件信息")
     @PutMapping("/updateById")
     public Response<Boolean> updateById(@RequestBody @Valid EventModifyVoParam voParam) throws Exception {
@@ -60,7 +56,6 @@ public class EventController {
                 .build();
     }
 
-    @ResponseBody
     @ApiOperation("删除事件信息")
     @DeleteMapping("/delete/{id}")
     @ApiImplicitParam(name = "id", value = "事件id", required = true)
@@ -71,7 +66,6 @@ public class EventController {
                 .build();
     }
 
-    @ResponseBody
     @PostMapping("/save")
     @ApiOperation("新增事件信息")
     public Response<Boolean> add(@RequestBody @Valid EventAddVoParam voParam) throws Exception {
@@ -80,6 +74,5 @@ public class EventController {
                 .body(eventService.save(voParam))
                 .build();
     }
-
 
 }

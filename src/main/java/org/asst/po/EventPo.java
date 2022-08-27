@@ -53,8 +53,8 @@ public class EventPo extends ComPo {
             vo.setTitle(getTitle());
             vo.setUrl(getUrl());
             vo.setContent(getContent());
-            vo.setStartTime(Optional.ofNullable(getStartTime()).map(DateUtils::timestampToDate).orElse(null));
-            vo.setEndTime(Optional.ofNullable(getEndTime()).map(DateUtils::timestampToDate).orElse(null));
+            vo.setStartTime(Optional.ofNullable(getStartTime()).map(DateUtils::timestampToLocalDateTime).orElse(null));
+            vo.setEndTime(Optional.ofNullable(getEndTime()).map(DateUtils::timestampToLocalDateTime).orElse(null));
             return (T) vo;
         }
 

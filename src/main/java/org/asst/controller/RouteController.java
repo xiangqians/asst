@@ -39,4 +39,14 @@ public class RouteController {
         return "editor";
     }
 
+    @GetMapping("/route/gantt")
+    public String ganttIndex() {
+        return "gantt/index";
+    }
+
+    @GetMapping("/route/gantt/gantt")
+    public String ganttGantt() {
+        return "gantt/gantt";
+    }
+
 }

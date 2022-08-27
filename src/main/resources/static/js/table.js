@@ -115,6 +115,14 @@ function TableModule(utilsModule) {
             if (field.type === 'date') {
                 $.datetimepicker.setLocale('ch');
                 $input.datetimepicker({
+                    format: 'Y-m-d',
+                    timepicker: false, // 只显示年月日
+                });
+            }
+            // dateTime
+            if (field.type === 'dateTime') {
+                $.datetimepicker.setLocale('ch');
+                $input.datetimepicker({
                     format: 'Y-m-d H:i:00',
                 });
             }
@@ -148,7 +156,18 @@ function TableModule(utilsModule) {
         let params = {};
         for (let i = 0, length = self.$fields.length; i < length; i++) {
             let $field = self.$fields[i];
-            params[$field.attr('name')] = $field.val();
+            let name = $field.attr('name');
+            let array = name.split('.');
+            if (array.length === 2) {
+                let obj = params[array[0]];
+                if (!(obj)) {
+                    obj = {};
+                    params[array[0]] = obj;
+                }
+                obj[array[1]] = $field.val();
+            } else {
+                params[name] = $field.val();
+            }
         }
         return params;
     }

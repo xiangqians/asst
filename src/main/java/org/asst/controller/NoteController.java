@@ -24,7 +24,7 @@ import javax.validation.Valid;
  * @author xiangqian
  * @date 22:14 2022/08/16
  */
-@Controller
+@RestController
 @RequestMapping("/note")
 @Api(value = "note", tags = "笔记信息管理")
 public class NoteController {
@@ -32,7 +32,6 @@ public class NoteController {
     @Autowired
     private NoteService noteService;
 
-    @ResponseBody
     @GetMapping("/page")
     @ApiOperation("笔记信息分页查询")
     public Response<Page<NoteVo>> page(@Valid NotePageVoParam voParam) throws Exception {
@@ -42,7 +41,6 @@ public class NoteController {
                 .build();
     }
 
-    @ResponseBody
     @ApiOperation("根据id查询笔记信息")
     @GetMapping("/queryById/{id}")
     @ApiImplicitParam(name = "id", value = "笔记id", required = true)
@@ -53,7 +51,6 @@ public class NoteController {
                 .build();
     }
 
-    @ResponseBody
     @ApiOperation("修改笔记信息")
     @PutMapping("/updateById")
     public Response<Boolean> updateById(@RequestBody @Validated(Modify.class) NoteModifyVoParam voParam) throws Exception {
@@ -63,7 +60,6 @@ public class NoteController {
                 .build();
     }
 
-    @ResponseBody
     @ApiOperation("删除笔记信息")
     @DeleteMapping("/delete/{id}")
     @ApiImplicitParam(name = "id", value = "笔记id", required = true)
@@ -74,7 +70,6 @@ public class NoteController {
                 .build();
     }
 
-    @ResponseBody
     @PostMapping("/save")
     @ApiOperation("新增笔记信息")
     public Response<Boolean> add(@RequestBody @Validated(Add.class) NoteAddVoParam voParam) throws Exception {
