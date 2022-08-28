@@ -49,4 +49,9 @@ public class RouteController {
         return "gantt/gantt";
     }
 
+    @GetMapping("/route/depositBudget")
+    public String depositBudget() {
+        return "deposit-budget";
+    }
+
 }

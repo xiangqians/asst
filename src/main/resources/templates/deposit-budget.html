@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<table>
+    <tbody align="center">
+    <tr>
+        <td colspan="2">基本信息</td>
+    </tr>
+    <tr>
+        <td>出生年份</td>
+        <td><input id="yearOfBirth" type="number"></td>
+    </tr>
+    <tr>
+        <td>预存金额（元）</td>
+        <td><input id="prestoreMoney" type="number"></td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <button type="button" onclick="calculate()">计算</button>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</div>
+
+<div style="text-align: center; margin-top: 50px">
+    <div id="graph" style="width: 1600px;height: 600px;"></div>
+</div>
+
+</body>
+</html>
+
+<!-- jquery.js -->
+<script th:src="${#request.contextPath} + '/lib/jquery-3.6.0/main.min.js'"></script>
+
+<!-- echarts.js -->
+<script th:src="${#request.contextPath} + '/lib/echarts-v4.7.0/echarts.min.js'"></script>
+
+<script>
+    // 计算
+    function calculate() {
+        let yearOfBirth = parseInt($('#yearOfBirth').val());
+        if (isNaN(yearOfBirth)) {
+            alert('出生年份: NaN');
+            return;
+        }
+
+        let prestoreMoney = parseInt($('#prestoreMoney').val());
+        if (isNaN(prestoreMoney)) {
+            alert('预存金额: NaN');
+            return;
+        }
+        let total = 0
+
+        let text = '月存款' + prestoreMoney + '元';
+
+        let xAxisData = [];
+        let seriesData = [];
+        let curYear = new Date().getFullYear();
+        let curMonth = new Date().getMonth() + 1
+
+        if (yearOfBirth > curYear) {
+            alert('出生年份不能大于当前日期');
+            return;
+        }
+
+        // 几岁
+        let age = curYear - yearOfBirth
+        // console.log('age', age);
+
+        let maxYear = curYear + (61 - age);
+        console.log('maxYear', maxYear);
+        while (curYear < maxYear) {
+            xAxisData.push(curYear + '年' + '\n' + age + '岁');
+            while (curMonth < 12) {
+                total += prestoreMoney;
+                curMonth++;
+            }
+            seriesData.push(total / 10000.0);
+            curMonth = 0;
+            curYear++;
+            age++;
+        }
+        // console.log('seriesData', seriesData);
+
+        // 初始化ehcharts实例
+        var myChart = echarts.init(document.getElementById('graph'))
+        // 指定图表的配置项和数据
+        var option = {
+            //标题
+            title: {
+                text: text
+            },
+            // 工具箱
+            toolbox: {
+                show: true,
+                feature: {
+                    // 保存图片
+                    saveAsImage: {
+                        show: true
+                    }
+                }
+            },
+            // An highlighted block
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                }
+            },
+            // 图例-每一条数据的名字叫销量
+            legend: {
+                data: ['存款']
+            },
+            // xAxis，配置x轴数据、样式、名称
+            xAxis: {
+                type: 'category',
+                data: xAxisData,
+                name: '', // x轴名称
+                // x轴名称样式
+                nameTextStyle: {
+                    fontWeight: 600,
+                    fontSize: 16
+                }
+            },
+            // yAxis，配置y轴名称，样式
+            yAxis: {
+                type: 'value',
+                name: '存款（万）', // y轴名称
+                // y轴名称样式
+                nameTextStyle: {
+                    fontWeight: 600,
+                    fontSize: 16
+                }
+            },
+            //数据-data是最终要显示的数据
+            series: {
+                name: '存款',
+                type: 'line',
+                itemStyle: { normal: { label: { show: true } } },
+                data: seriesData
+            }
+        }
+        //使用刚刚指定的配置项和数据项显示图表
+        myChart.setOption(option);
+    }
+</script>
