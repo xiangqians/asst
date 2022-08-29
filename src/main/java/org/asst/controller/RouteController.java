@@ -54,4 +54,9 @@ public class RouteController {
         return "deposit-budget";
     }
 
+    @GetMapping("/route/loan/mtg")
+    public String mtgLoan() {
+        return "loan/mtg";
+    }
+
 }

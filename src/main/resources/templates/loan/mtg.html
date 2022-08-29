@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>按揭贷款计算器</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="${#request.contextPath} + '/lib/layui-v2.6.8/css/layui.css'" media="all">
+    <script th:src="${#request.contextPath} + '/lib/layui-v2.6.8/layui.js'"></script>
+    <script th:src="${#request.contextPath} + '/lib/jquery-3.6.0/main.min.js'"></script>
+    <script th:src="${#request.contextPath} + '/lib/echarts-v4.7.0/echarts.min.js'"></script>
+    <script th:src="${#request.contextPath} + '/js/utils.js'"></script>
+</head>
+<body>
+
+<!-- 公共函数 -->
+<script>
+    function createTrTag(name, value) {
+        let trElement = document.createElement('tr')
+        let tdElement = null
+
+        tdElement = document.createElement('td')
+        tdElement.innerText = name
+        trElement.appendChild(tdElement)
+
+        tdElement = document.createElement('td')
+        tdElement.innerText = value
+        trElement.appendChild(tdElement)
+        return trElement
+    }
+
+    function numericFormatting(value) {
+        // 保留两位有效小数，不四舍五入，向下取整
+        const cardinality = 100
+        var result = Math.floor(value / 10000 * cardinality) / cardinality
+        // console.log(value, value / 10000, (value / 10000).toFixed(2), result)
+        return result
+    }
+</script>
+
+<!-- 贷款基本信息 -->
+<div class="layui-bg-gray" style="padding: 30px;">
+    <div class="layui-card">
+        <div class="layui-card-header">贷款基本信息</div>
+        <div class="layui-form" style="width: 30%;">
+            <table class="layui-table">
+                <tbody id="loanBasicInfo" align="center">
+                <tr>
+                    <td>贷款金额（万）</td>
+                    <td><input type="number" class="layui-input" value="30" id="loanAmount"></td>
+                </tr>
+                <tr>
+                    <td>贷款期限（年）</td>
+                    <td><input type="number" class="layui-input" value="15" id="loanTerm"></td>
+                </tr>
+                <tr>
+                    <td>年利率（%）</td>
+                    <td><input type="number" class="layui-input" value="5.8" id="apr"></td>
+                </tr>
+                <tr>
+                    <td>贷款时间</td>
+                    <td><input type="text" class="layui-input" id="loanTime"></td>
+                </tr>
+                <tr>
+                    <td>每月存入（元）</td>
+                    <td><input type="number" class="layui-input" value="4000" id="salary"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button type="button" onclick="calculate()" class="layui-btn">计算</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use('laydate', function () {
+        var laydate = layui.laydate
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#loanTime', //指定元素
+            value: new Date(), // 初始值
+            format: 'yyyy-MM-dd' // 日期格式化
+        })
+    })
+
+    function SettlementCalculation(hintId, repaymDetails, loadTableFunction) {
+        this.repaymDetails = repaymDetails
+        this.loadTableFunction = loadTableFunction
+        this.period = 0
+        this.hint = ''
+        this.tableRenderObject = null
+
+        // 薪资 - 每月存入
+        const salary = parseFloat(document.getElementById('salary').value)
+
+        const aHintId = 'a' + hintId
+        const _this = this
+        let residualSalary = 0 // 剩余工资
+        let hint = ''
+        for (let i = 0, length = this.repaymDetails.length; i < length; i++) {
+            const repaymDetails = this.repaymDetails[i]
+            // 剩余工资 >= 剩余本金 ?
+            if (residualSalary >= repaymDetails.remainingPrincipal) {
+                this.period = repaymDetails.period
+                hint = '在第 <a id="' + aHintId + '" style="color:#5FB878" href="javascript:void(0);">' + this.period + '</a></a> 期（' + repaymDetails.time + '）可以一次结清剩余本金'
+                break
+            }
+            residualSalary += salary - repaymDetails.repaymAmount
+        }
+
+        let eiopaiHintElement = document.getElementById(hintId)
+        eiopaiHintElement.innerHTML = hint
+        if ('' !== hint) {
+            eiopaiHintElement.style.backgroundColor = "rgb(253 245 230)"
+            eiopaiHintElement.style.fontWeight = "800" // 字体粗细可以设置为100到900。数字越大，越厚
+            eiopaiHintElement.style.fontSize = "16px"
+            document.getElementById(aHintId).onclick = function () {
+                _this.jumpToSpecifiedPage()
+            }
+        }
+    }
+
+    SettlementCalculation.prototype.setTableRenderObject = function (tableRenderObject) {
+        this.tableRenderObject = tableRenderObject
+    }
+    SettlementCalculation.prototype.jumpToSpecifiedPage = function () {
+        if (this.period === 0) {
+            return
+        }
+        let limit = this.tableRenderObject.config.limit
+        let pages = this.tableRenderObject.config.page.pages
+        for (let i = 1; i <= pages; i++) {
+            if (this.period < limit * i) {
+                // let curr = this.tableRenderObject.config.page.curr
+                let curr = i
+                let limit = this.tableRenderObject.config.page.limit
+                this.loadTableFunction(this, this.repaymDetails, curr, limit)
+                return
+            }
+        }
+    }
+    SettlementCalculation.prototype.tableDone = function (_tableRenderObject, data, curr, count) {
+        const _this = this
+        const that = _tableRenderObject.elem.next();
+        data.data.forEach(function (item, index) {
+            if (_this.eriod != 0 && item.period >= _this.period) {
+                let tr = that.find(".layui-table-box tbody tr[data-index='" + index + "']");
+                tr.css("background-color", "rgb(253 245 230)");
+            }
+        })
+    }
+</script>
+
+<!-- 等额本息 -->
+<div class="layui-bg-gray" style="padding: 30px;">
+    <div class="layui-card">
+        <div class="layui-card-header">等额本息&emsp;&emsp;<span id="eiopaiHint"></span></div>
+        <table class="layui-table" lay-skin="line" style="width: 30%;">
+            <tbody id="eiopaiBasicInfo"></tbody>
+        </table>
+        <table id="eiopai" style="width: 100%;">
+        </table>
+    </div>
+</div>
+
+<script>
+
+    function loadEIOPAIRepaymentMethodTable(data) {
+        let loanBasicInfoElement = document.getElementById('eiopaiBasicInfo')
+        loanBasicInfoElement.innerHTML = ""
+        loanBasicInfoElement.appendChild(createTrTag('每期还款金额（元）', data.repaymAmountPerInstal))
+        loanBasicInfoElement.appendChild(createTrTag('利息总额（万）', numericFormatting(data.totalInterest)))
+        loanBasicInfoElement.appendChild(createTrTag('还款总额（万）', numericFormatting(data.totalRepaym)))
+
+        const repaymDetails = data.repaymDetails
+        const settlementCalculation = new SettlementCalculation('eiopaiHint', repaymDetails, _loadEIOPAIRepaymentMethodTable)
+        _loadEIOPAIRepaymentMethodTable(settlementCalculation, repaymDetails)
+    }
+
+    function _loadEIOPAIRepaymentMethodTable(settlementCalculation, repaymDetails, curr, limit) {
+        layui.use('table', function () {
+            const table = layui.table;
+
+            const cols = [{ field: 'period', title: '期次', sort: true, align: 'center', fixed: 'center', width: 80 },
+                { field: 'time', title: '还款日期', align: 'center', fixed: 'center', width: 120 },
+                { field: 'repaymAmount', title: '还款金额（元）', align: 'center', fixed: 'center', width: 160 },
+                { field: 'repayPrincipal', title: '偿还本金（元）', align: 'center', fixed: 'center', width: 160 },
+                { field: 'repaymInterest', title: '偿还利息（元）', align: 'center', fixed: 'center', width: 160 },
+                { field: 'remainingPrincipal', title: '剩余本金（元）', align: 'center', fixed: 'center', width: 160 },
+                { field: 'residualInterest', title: '剩余利息（元）', align: 'center', fixed: 'center', width: 160 },
+            ];
+
+            // render
+            const tableRenderObject = table.render({
+                elem: '#eiopai',
+                data: repaymDetails,
+                // page: true,
+                page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
+                    layout: ['prev', 'page', 'next', 'skip', 'count', 'limit'], //自定义分页布局
+                    curr: curr ? curr : 1, //设定初始在第 5 页
+                    groups: 5,  //只显示 5 个连续页码
+                    first: true,  //显示首页
+                    last: true //显示尾页
+                },
+                limits: [12 * 1, 12 * 2, 12 * 3, 12 * 4, 12 * 5],
+                limit: limit ? limit : 12 * 1,
+                cols: [cols],
+                done: function (data, curr, count) {
+                    settlementCalculation.tableDone(this, data, curr, count)
+                }
+            })
+            settlementCalculation.setTableRenderObject(tableRenderObject)
+        })
+    }
+</script>
+
+
+<!-- 等额本金 -->
+<div class="layui-bg-gray" style="padding: 30px;">
+    <div class="layui-card">
+        <div class="layui-card-header">等额本金&emsp;&emsp;<span id="eiopHint"></span></div>
+        <table class="layui-table" lay-skin="line" style="width: 30%;">
+            <tbody id="eiopBasicInfo"></tbody>
+        </table>
+        <table id="eiop" style="width: 100%;">
+        </table>
+    </div>
+</div>
+<script>
+    function loadEIOPRepaymentMethodTable(data) {
+        let loanBasicInfoElement = document.getElementById('eiopBasicInfo')
+        loanBasicInfoElement.innerHTML = ""
+        loanBasicInfoElement.appendChild(createTrTag('首期还款金额（元）', data.firstRepaymAmount))
+        loanBasicInfoElement.appendChild(createTrTag('每期递减金额（元）', data.dcrgAmountEachPeriod))
+        loanBasicInfoElement.appendChild(createTrTag('利息总额（万）', numericFormatting(data.totalInterest)))
+        loanBasicInfoElement.appendChild(createTrTag('还款总额（万）', numericFormatting(data.totalRepaym)))
+
+        const repaymDetails = data.repaymDetails
+        const settlementCalculation = new SettlementCalculation('eiopHint', repaymDetails, _loadEIOPRepaymentMethodTable)
+        _loadEIOPRepaymentMethodTable(settlementCalculation, repaymDetails)
+    }
+
+    function _loadEIOPRepaymentMethodTable(settlementCalculation, repaymDetails, curr, limit) {
+        layui.use('table', function () {
+            const table = layui.table;
+
+            const cols = [
+                { field: 'period', title: '期次', sort: true, align: 'center', fixed: 'center', width: 80 },
+                { field: 'time', title: '还款日期', align: 'center', fixed: 'center', width: 120 },
+                { field: 'repaymAmount', title: '还款金额（元）', align: 'center', fixed: 'center', width: 160 },
+                { field: 'repayPrincipal', title: '偿还本金（元）', align: 'center', fixed: 'center', width: 160 },
+                { field: 'repaymInterest', title: '偿还利息（元）', align: 'center', fixed: 'center', width: 160 },
+                { field: 'remainingPrincipal', title: '剩余本金（元）', align: 'center', fixed: 'center', width: 160 },
+                { field: 'residualInterest', title: '剩余利息（元）', align: 'center', fixed: 'center', width: 160 },
+            ];
+
+            // render
+            const tableRenderObject = table.render({
+                elem: '#eiop',
+                data: repaymDetails,
+                page: true,  // 是否开启分页
+                limits: [12 * 1, 12 * 2, 12 * 3, 12 * 4, 12 * 5],
+                limit: limit ? limit : 12 * 1,
+                page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
+                    layout: ['prev', 'page', 'next', 'skip', 'count', 'limit'], //自定义分页布局
+                    curr: curr ? curr : 1, //设定初始在第 5 页
+                    groups: 5,  //只显示 5 个连续页码
+                    first: true,  //显示首页
+                    last: true //显示尾页
+                },
+                // 表头
+                cols: [cols],
+                done: function (data, curr, count) {
+                    settlementCalculation.tableDone(this, data, curr, count)
+                }
+            })
+            settlementCalculation.setTableRenderObject(tableRenderObject)
+        })
+    }
+</script>
+
+<script>
+    let utilsModule = UtilsModule();
+
+    function calculateBak() {
+        let params = {};
+        params.loanAmount = parseInt($('#loanAmount').val()) * 10000; // w
+        params.loanTerm = parseInt($('#loanTerm').val()) * 12; // year
+        params.apr = $('#apr').val();
+        params.loanTime = $('#loanTime').val();
+
+        utilsModule.Utils.Http.get('/loan/mtg/equalLoanPayment', params, function (resp) {
+            loadEIOPAIRepaymentMethodTable(resp.body)
+        })
+        utilsModule.Utils.Http.get('/loan/mtg/equalPrincipalPayment', params, function (resp) {
+            loadEIOPRepaymentMethodTable(resp.body)
+        })
+    }
+</script>
+
+
+<!-- ////////////////////////////////////////////////////////// -->
+
+
+<!-- 公共函数 -->
+<script>
+    function createTrTag(name, value) {
+        let trElement = document.createElement('tr')
+        let tdElement = null
+
+        tdElement = document.createElement('td')
+        tdElement.innerText = name
+        trElement.appendChild(tdElement)
+
+        tdElement = document.createElement('td')
+        tdElement.innerText = value
+        trElement.appendChild(tdElement)
+        return trElement
+    }
+
+    function formatRepaymentMethod(repaymentMethod) {
+        if (repaymentMethod === "EIOPAIRepaymentMethod") {
+            return "等额本息"
+        } else if (repaymentMethod === "EIOPRepaymentMethod") {
+            return "等额本金"
+        } else {
+            return "未定义"
+        }
+    }
+
+    function numericFormatting(value) {
+        // 保留两位有效小数，不四舍五入，向下取整
+        const cardinality = 100
+        var result = Math.floor(value / 10000 * cardinality) / cardinality
+        // console.log(value, value / 10000, (value / 10000).toFixed(2), result)
+        return result
+    }
+</script>
+
+
+<!-- 计划 -->
+<!--
+<div class="layui-bg-gray" style="padding: 30px;">
+    <div class="layui-card">
+        <div class="layui-card-header">计划：</div>
+        <div class="layui-form">
+            <table class="layui-table">
+                <colgroup>
+                    <col width="150">
+                    <col width="150">
+                    <col width="200">
+                    <col>
+                </colgroup>
+                <thead valign="middle">
+                <tr id="planInfosHeader">
+                </tr>
+                </thead>
+                <tbody id="planInfosBody" align="center">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+-->
+<script>
+    function loadPlanInfosTable(data) {
+        // define
+        const headers = [
+            { field: 'loanTerm', title: '贷款期限（年）' },
+            { field: 'repaymentMethod', title: '还款方式', templet: formatRepaymentMethod },
+            { field: 'period', title: '期次' },
+            { field: 'time', title: '还款日期' },
+            { field: 'repayPrincipal', title: '已还本金（万）', templet: numericFormatting },
+            { field: 'remainingPrincipal', title: '剩余本金（万）', templet: numericFormatting },
+            { field: 'repaymentInterest', title: '已还利息（万）', templet: numericFormatting },
+            { field: 'residualInterest', title: '剩余利息（万）', templet: numericFormatting },
+        ]
+
+        // header
+        let planInfosHeaderElement = document.getElementById('planInfosHeader')
+        headers.forEach(header => {
+            let thElement = document.createElement('th')
+            thElement.innerText = header.title
+            planInfosHeaderElement.appendChild(thElement)
+        })
+
+        // body
+        let planInfosBodyElement = document.getElementById('planInfosBody')
+        data.forEach(planInfo => {
+            let trElement = document.createElement('tr')
+            headers.forEach(header => {
+                let tdElement = document.createElement('td')
+                tdElement.innerText = header.templet ? header.templet(planInfo[header.field]) : planInfo[header.field]
+                trElement.appendChild(tdElement)
+            })
+            planInfosBodyElement.appendChild(trElement)
+        })
+    }
+</script>
+<br /><br /><br />
+
+
+<!-- 剩余本金、利息统计 -->
+<!--
+<div style="text-align: center;">
+    <div class="layui-inline">
+        <div id="remainingPrincipalLineChart" style="width: 1600px;height: 600px;"></div>
+    </div>
+</div>
+<div style="text-align: center;">
+    <div class="layui-inline">
+        <div id="residualInterestLineChart" style="width: 1600px;height: 600px;"></div>
+    </div>
+</div>
+-->
+<script>
+    function initLineChart(info, data) {
+        let xAxisDataSet = new Set()
+        let legendDataSet = new Set()
+        let seriesMap = new Map()
+        for (let i = 0, length = data.length; i < length; i++) {
+            let object = data[i]
+            xAxisDataSet.add(object.loanTerm)
+
+            const key = formatRepaymentMethod(object.repaymentMethod)
+            let serie = seriesMap.get(key)
+            if (serie == undefined) {
+                serie = {
+                    name: key,
+                    type: 'line',
+                    itemStyle: { normal: { label: { show: true } } },
+                    data: []
+                }
+                seriesMap.set(key, serie)
+            }
+            serie.data.push(numericFormatting(object[info.field]))
+            legendDataSet.add(serie.name)
+        }
+        let series = [];
+        seriesMap.forEach(value => {
+            series.push(value)
+        })
+
+        // 初始化ehcharts实例
+        var myChart = echarts.init(document.getElementById(info.id))
+        // 指定图表的配置项和数据
+        var option = {
+            //标题
+            title: {
+                text: info.title
+            },
+            // 工具箱
+            toolbox: {
+                show: true,
+                feature: {
+                    // 保存图片
+                    saveAsImage: {
+                        show: true
+                    }
+                }
+            },
+            // An highlighted block
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                }
+            },
+            // 图例-每一条数据的名字叫销量
+            legend: {
+                data: Array.from(legendDataSet)
+            },
+            // xAxis，配置x轴数据、样式、名称
+            xAxis: {
+                type: 'category',
+                data: Array.from(xAxisDataSet),
+                name: '贷款期限（年）',   // x轴名称
+                // x轴名称样式
+                nameTextStyle: {
+                    fontWeight: 600,
+                    fontSize: 16
+                }
+            },
+            // yAxis，配置y轴名称，样式
+            yAxis: {
+                type: 'value',
+                name: info.name, // y轴名称
+                // y轴名称样式
+                nameTextStyle: {
+                    fontWeight: 600,
+                    fontSize: 16
+                }
+            },
+            //数据-data是最终要显示的数据
+            series: series
+        }
+        //使用刚刚指定的配置项和数据项显示图表
+        myChart.setOption(option)
+    }
+
+    function loadLineChart(data) {
+        let info = {
+            id: 'remainingPrincipalLineChart',
+            title: '贷款期限 — 剩余本金',
+            field: 'remainingPrincipal',
+            name: '剩余本金（万）'
+        }
+        initLineChart(info, data)
+
+        info = {
+            id: 'residualInterestLineChart',
+            title: '贷款期限 — 剩余利息',
+            field: 'residualInterest',
+            name: '剩余利息（万）'
+        }
+        initLineChart(info, data)
+    }
+
+</script>
+
+
+<!-- 利息统计 -->
+<div style="text-align: center;">
+    <div class="layui-inline">
+        <div id="eiopaiPrincipalLineChart" style="width: 1600px;height: 600px;"></div>
+    </div>
+</div>
+<div style="text-align: center;">
+    <div class="layui-inline">
+        <div id="eiopPrincipalLineChart" style="width: 1600px;height: 600px;"></div>
+    </div>
+</div>
+<script>
+    function initPrincipalLineChart(info, data) {
+        let xAxisDataSet = new Set()
+        let legendDataSet = new Set()
+        let seriesMap = new Map()
+        for (let i = 0, length = data.length; i < length; i++) {
+            let object = data[i]
+            xAxisDataSet.add(object.loanTerm)
+            const interestInfos = [
+                { field: 'repaymentInterest', name: '已还利息（万）' },
+                { field: 'residualInterest', name: '剩余利息（万）' }
+            ]
+            interestInfos.forEach(interestInfo => {
+                const key = interestInfo.name
+                let serie = seriesMap.get(key)
+                if (serie == undefined) {
+                    serie = {
+                        loanTerm: 100000001,
+                        name: key,
+                        type: 'line',
+                        itemStyle: { normal: { label: { show: true } } },
+                        data: []
+                    }
+                    seriesMap.set(key, serie)
+                }
+                serie.data.push(numericFormatting(object[interestInfo.field]))
+                legendDataSet.add(serie.name)
+            })
+        }
+        let series = [];
+        seriesMap.forEach(value => {
+            series.push(value)
+        })
+
+        const _data = data
+
+        // 初始化ehcharts实例
+        var myChart = echarts.init(document.getElementById(info.id))
+        // 指定图表的配置项和数据
+        var option = {
+            //标题
+            title: {
+                text: info.title
+            },
+            // 工具箱
+            toolbox: {
+                show: true,
+                feature: {
+                    // 保存图片
+                    saveAsImage: {
+                        show: true
+                    }
+                }
+            },
+            // An highlighted block
+            tooltip: {
+                trigger: 'axis',
+                // trigger: 'item',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                },
+                // 用formatter回调函数显示单项数据内容
+                formatter: function (data) {
+                    let loanTerm = data[0].name
+                    let result = '贷款期限（年）: ' + loanTerm + '<br/>'
+                    for (let i = 0, length = data.length; i < length; i++) {
+                        result += data[i].seriesName + ': ' + data[i].value + '<br/>'
+                    }
+
+                    //
+                    let target = null
+                    for (let j = 0, jLength = _data.length; j < jLength; j++) {
+                        if (_data[j].loanTerm + '' === loanTerm) {
+                            target = _data[j]
+                            break
+                        }
+                    }
+                    result += '期次: ' + target.period + '<br/>'
+                    result += '还款日期: ' + target.time + '<br/>'
+                    return result
+                }
+            },
+            // 图例-每一条数据的名字叫销量
+            legend: {
+                data: Array.from(legendDataSet)
+            },
+            // xAxis，配置x轴数据、样式、名称
+            xAxis: {
+                type: 'category',
+                data: Array.from(xAxisDataSet),
+                name: '贷款期限（年）',   // x轴名称
+                // x轴名称样式
+                nameTextStyle: {
+                    fontWeight: 600,
+                    fontSize: 16
+                }
+            },
+            // yAxis，配置y轴名称，样式
+            yAxis: {
+                type: 'value',
+                name: info.name, // y轴名称
+                // y轴名称样式
+                nameTextStyle: {
+                    fontWeight: 600,
+                    fontSize: 16
+                }
+            },
+            //数据-data是最终要显示的数据
+            series: series
+        }
+        //使用刚刚指定的配置项和数据项显示图表
+        myChart.setOption(option)
+    }
+
+    function loadPrincipalLineChart(data) {
+        let info = {
+            id: 'eiopaiPrincipalLineChart',
+            repaymentMethod: 'EIOPAIRepaymentMethod',
+            title: '等额本息 —— 利息趋势',
+            name: '利息（万）'
+        }
+        initPrincipalLineChart(info, data.eiopaiRepaymentMethodBudgetInfos)
+
+        info = {
+            id: 'eiopPrincipalLineChart',
+            repaymentMethod: 'EIOPRepaymentMethod',
+            title: '等额本金 —— 利息趋势',
+            name: '利息（万）'
+        }
+        initPrincipalLineChart(info, data.eiopRepaymentMethodBudgetInfos)
+
+    }
+
+</script>
+<!--
+2、实现
+（本文代码只涉及配置项的部分代码）
+
+上述图片的效果可用echarts的tooltip组件中的一个formatter方法实现，formatter支持字符串和回调函数两种配置方式（本文只描述回调函数的实现方式）。
+（具体参考：http://echarts.baidu.com/option.html#tooltip.formatter）。
+
+2.1 显示单项数据内容
+（处理上图2提示框的效果）
+
+/**
+ * tooltip配置项示例
+ */
+
+//用formatter回调函数显示单项数据内容
+tooltip: {
+              trigger: 'item',
+              formatter: function(data)
+              {
+                  return data.name + '<br/>' +data.seriesName + '：'+(data.value * 100)+'%'; //将小数转化为百分数显示
+               }
+          }
+2.2 显示多项数据内容
+（处理上图3提示框的效果）
+
+/**
+ * tooltip配置项示例
+ */
+
+//用formatter回调函数显示多项数据内容
+tooltip: {
+              trigger: 'axis',
+              formatter: function(datas)
+              {
+                  var res = datas[0].name + '<br/>', val;
+                  for(var i = 0, length = datas.length; i < length; i++) {
+                        val = (datas[i].value*100) + '%';
+                        res += datas[i].seriesName + '：' + val + '<br/>';
+                    }
+                    return res;
+               }
+          }
+2.3 formatter回调函数的传参
+formatter回调函数的传参格式为：
+
+ (params: Object|Array, ticket: string, callback: (ticket: string, html: string)) => string
+描述：
+1、params：
+（1）当tooltip的trigger为‘item’时，显示单项数据内容。formatter回调函数的第一个参数传入一个数据项对象；
+（2）当tooltip的trigger为‘axis’时，显示多项数据内容数组。formatter回调函数的第一个参数传入当前类目下的数据项对象数组。
+2、ticket：异步回调标识，无需关心，用作callback的传参。
+3、callback：异步回调函数，传递ticket与填充内容的html两个参数。
+
+当tooltip的trigger为‘item’时，在控制台中输出的单项数据示例对象为：
+
+{
+    $vars: ["seriesName", "name", "value"],
+    color: "#c23531",
+    componentSubType: "bar",
+    componentType: "series",
+    data: 0.6,
+    dataIndex: 2,
+    dataType: undefine,
+    dname: "1月3日",
+    seriesIndex: 0,
+    seriesName: "iphone6",
+    seriesType: "bar",
+    value: 0.6
+
+}
+其中，几个重要的data对象属性如下：
+seriesName：系列名称
+value：当前数据值
+name：数据名，类目名（上述柱状图中表示当前横坐标数据名）
+
+模拟异步返回提示框内容如下：
+
+//用formatter回调函数模拟异步返回提示框内容
+tooltip: {
+     trigger: 'item',
+     formatter: function(param, ticket, callback)
+     {
+         //用定时器模拟异步事件
+           setTimeout(function() {
+               var res = param.name + '<br/>' +param.seriesName + '：'+(param.value * 100)+'%';
+               callback(ticket, res);
+           }, 1000);
+           return '';//内容还没返回时显示的内容
+      }
+ }
+3、扩展-其他配置项的formatter
+3.1 直角坐标轴（xAxis／yAxis）中axisLabel的formatter
+显示效果为上图2-单项提示框的y轴刻度数据。
+
+//yAxis／xAxis配置项示例——用axisLabel 的formatter回调函数处理数据格式
+yAxis: {
+   name: '销量占比',
+   axisLabel : {
+       formatter: function(value) {
+           if(value == 0) {
+               return value;
+           }else {
+               return value*100+'%';
+          }
+
+       }
+   }
+ }
+-->
+
+
+<!-- data -->
+<script>
+
+    function calculate() {
+        let params = {};
+        params.loanAmount = parseInt($('#loanAmount').val()) * 10000; // w
+        params.loanTerm = parseInt($('#loanTerm').val()) * 12; // year
+        params.apr = $('#apr').val();
+        params.loanTime = $('#loanTime').val();
+        params.salary = $('#salary').val();
+
+        utilsModule.Utils.Http.get('/loan/mtg/equalLoanPayment', params, function (resp) {
+            loadEIOPAIRepaymentMethodTable(resp.body)
+        })
+
+        utilsModule.Utils.Http.get('/loan/mtg/equalPrincipalPayment', params, function (resp) {
+            loadEIOPRepaymentMethodTable(resp.body)
+        })
+
+        utilsModule.Utils.Http.get('/loan/mtg/budget', params, function (resp) {
+            loadPrincipalLineChart(resp.body)
+        })
+    }
+
+</script>
+
+
+</body>
+</html>
