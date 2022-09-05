@@ -9,23 +9,17 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.asst.constant.GanttCustomClass;
-import org.asst.o.VoParam;
 import org.asst.util.DateUtils;
 import org.asst.util.JacksonUtils;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.util.Assert;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -38,10 +32,11 @@ import java.util.function.Function;
  * @date 15:33 2022/08/27
  */
 @Data
+@Deprecated
 @ApiModel(description = "甘特图值集合")
 //@JsonSerialize(using = GanttValue.GanttValuesSerializer.class)
 //@JsonDeserialize(using = GanttValue.GanttValuesDeserializer.class)
-public class GanttValue implements VoParam {
+public class GanttContent {
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @NotNull(message = "甘特图开始时间不能为空")
@@ -65,19 +60,7 @@ public class GanttValue implements VoParam {
     @ApiModelProperty("甘特图数据条的颜色")
     private Integer customClass;
 
-    @Override
-    public void post() {
-        Assert.isTrue(from.isEqual(to) || from.isBefore(to), "甘特图开始时间不能大于结束时间");
-        label = StringUtils.trim(label);
-        desc = StringUtils.trim(desc);
-        if (Objects.nonNull(customClass)) {
-            GanttCustomClass.check(customClass);
-        } else {
-            customClass = 4;
-        }
-    }
-
-    public static String serialize(List<GanttValue> values) {
+    public static String serialize(List<GanttContent> values) {
         if (Objects.isNull(values)) {
             return null;
         }
@@ -88,22 +71,22 @@ public class GanttValue implements VoParam {
         }
     }
 
-    public static List<GanttValue> deserialize(String input) {
+    public static List<GanttContent> deserialize(String input) {
         if (Objects.isNull(input)) {
             return null;
         }
         try {
-            return JacksonUtils.toObject(input, new TypeReference<List<GanttValue>>() {
+            return JacksonUtils.toObject(input, new TypeReference<List<GanttContent>>() {
             });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static class GanttValuesSerializer extends JsonSerializer<GanttValue> {
+    public static class GanttValuesSerializer extends JsonSerializer<GanttContent> {
 
         @Override
-        public void serialize(GanttValue ganttValues, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        public void serialize(GanttContent ganttValues, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeNumberField("from", DateUtils.dateToTimestamp(ganttValues.getFrom()));
             jsonGenerator.writeNumberField("to", DateUtils.dateToTimestamp(ganttValues.getTo()));
@@ -115,11 +98,11 @@ public class GanttValue implements VoParam {
 
     }
 
-    public static class GanttValuesDeserializer extends JsonDeserializer<GanttValue> {
+    public static class GanttValuesDeserializer extends JsonDeserializer<GanttContent> {
         @Override
-        public GanttValue deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+        public GanttContent deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
             TreeNode treeNode = jsonParser.getCodec().readTree(jsonParser);
-            GanttValue ganttValues = new GanttValue();
+            GanttContent ganttValues = new GanttContent();
 
             Function<TreeNode, LocalDate> treeNodeToDateFunction = tn -> {
                 if (Objects.isNull(tn)) {

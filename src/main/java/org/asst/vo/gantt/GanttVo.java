@@ -3,10 +3,7 @@ package org.asst.vo.gantt;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.asst.po.addl.gantt.GanttValue;
 import org.asst.vo.com.ComVo;
-
-import java.util.List;
 
 /**
  * @author xiangqian
@@ -21,12 +18,6 @@ public class GanttVo extends ComVo {
 
     @ApiModelProperty("甘特图描述")
     private String desc;
-
-    @ApiModelProperty("甘特图值集合")
-    private List<GanttValue> values;
-
-    @ApiModelProperty("甘特图值")
-    private GanttValue value;
 
     @ApiModelProperty("甘特图内容")
     private String content;

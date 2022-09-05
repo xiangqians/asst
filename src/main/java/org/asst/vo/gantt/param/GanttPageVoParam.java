@@ -22,14 +22,10 @@ public class GanttPageVoParam extends PageRequest {
     @ApiModelProperty("甘特图描述")
     private String desc;
 
-    @ApiModelProperty("甘特图内容")
-    private String content;
-
     @Override
     public void post() {
         name = StringUtils.trimToNull(name);
         desc = StringUtils.trimToNull(desc);
-        content = StringUtils.trimToNull(content);
         super.post();
     }
 
@@ -40,7 +36,6 @@ public class GanttPageVoParam extends PageRequest {
             GanttPoParam poParam = new GanttPoParam();
             poParam.setName(getName());
             poParam.setDesc(getDesc());
-            poParam.setContent(getContent());
             return (T) poParam;
         }
 

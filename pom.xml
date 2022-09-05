@@ -96,6 +96,12 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!-- spring-boot-starter-security -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
         <!-- starter-web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

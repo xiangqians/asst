@@ -1,5 +1,5 @@
 server:
-  address: 127.0.0.1
+  #address: 127.0.0.1
   port: 8080
   servlet:
     context-path: /
@@ -40,6 +40,20 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+
+  # security
+  # 1. 不配置 security
+  # UserDetailsServiceAutoConfiguration :
+  # Using generated security password: c744fa6b-3108-42ea-a9f8-fa024bd996a1
+  # This generated password is for development use only. Your security configuration must be updated before running your application in production.
+  # 初始用户是user，密码可以从启动日志里查看
+  # 源码：org.springframework.boot.autoconfigure.security.SecurityProperties
+  # http://localhost:8080/logout 退出登录
+  # 2. 配置security
+  security:
+    user:
+      name: root
+      password: root
 
   # profiles
   profiles:

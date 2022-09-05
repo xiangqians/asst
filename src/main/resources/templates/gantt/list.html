@@ -15,12 +15,7 @@
 
 <div id="page"></div>
 
-<div style="margin-top: 50px; text-align: center;">
-    <a th:href="${#request.contextPath} + '/route/gantt/gantt'" target="_blank" style="font-size: 30px">甘特图</a>
-</div>
-
 <div id="table" style="margin-top: 50px"></div>
-
 
 </body>
 </html>
@@ -54,7 +49,6 @@
         // { code: 'id', name: 'ID' },
         { code: 'name', name: '名称' },
         { code: 'desc', name: '描述' },
-        { code: 'content', name: '内容' },
         { code: 'weight', name: '权重' },
         { code: 'createTime', name: '创建时间' },
         { code: 'updateTime', name: '修改时间' },
@@ -66,23 +60,15 @@
                     name: '查看',
                     click: function (event) {
                         let id = $(event.target).attr('id');
-                        window.open(contextPath + '/route/editor?type=gantt&id=' + id, '_blank');
+                        window.open(contextPath + '/route/gantt/view?id=' + id, '_blank');
                     }
                 },
-                // {
-                //     name: '甘特图',
-                //     click: function (event) {
-                //         let id = $(event.target).attr('id');
-                //         window.open(contextPath + '/route/gantt/gantt?id=' + id, '_blank');
-                //     }
-                // }
             ]
         },
     ];
     const searchFields = [
         { code: 'name', name: '名称' },
         { code: 'desc', name: '描述' },
-        { code: 'content', name: '内容' },
     ];
 
     function CustomPage($element, fields, searchFields, ur) {
@@ -110,14 +96,7 @@
     // table
     const tableFields = [
         { code: 'name', name: '名称*' },
-        { code: 'desc', name: '描述' },
-
-        // value
-        { code: 'value.from', name: '甘特图开始时间*', type: 'date' },
-        { code: 'value.to', name: '甘特图结束时间*', type: 'date' },
-        { code: 'value.label', name: '甘特图标签' },
-        { code: 'value.desc', name: '甘特图描述' },
-
+        { code: 'desc', name: '描述', type: 'textarea' },
         { code: 'weight', name: '权重', type: 'number' },
     ];
     new tableModule.Table('新增甘特图信息', $('#table'), tableFields, contextPath + '/gantt/save', 'post', true, function () {

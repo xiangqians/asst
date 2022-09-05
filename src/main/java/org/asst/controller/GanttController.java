@@ -7,11 +7,14 @@ import org.asst.pagination.Page;
 import org.asst.resp.Response;
 import org.asst.resp.StatusCodeImpl;
 import org.asst.service.GanttService;
+import org.asst.validation.groups.Add;
+import org.asst.validation.groups.Modify;
 import org.asst.vo.gantt.GanttVo;
 import org.asst.vo.gantt.param.GanttAddVoParam;
 import org.asst.vo.gantt.param.GanttModifyVoParam;
 import org.asst.vo.gantt.param.GanttPageVoParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -49,7 +52,7 @@ public class GanttController {
 
     @ApiOperation("修改甘特图信息")
     @PutMapping("/updateById")
-    public Response<Boolean> updateById(@RequestBody @Valid GanttModifyVoParam voParam) throws Exception {
+    public Response<Boolean> updateById(@RequestBody @Validated(Modify.class) GanttModifyVoParam voParam) throws Exception {
         return Response.<Boolean>builder()
                 .statusCode(StatusCodeImpl.OK)
                 .body(ganttService.updateById(voParam))
@@ -68,7 +71,7 @@ public class GanttController {
 
     @PostMapping("/save")
     @ApiOperation("新增甘特图信息")
-    public Response<Boolean> add(@RequestBody @Valid GanttAddVoParam voParam) throws Exception {
+    public Response<Boolean> add(@RequestBody @Validated(Add.class) GanttAddVoParam voParam) throws Exception {
         return Response.<Boolean>builder()
                 .statusCode(StatusCodeImpl.OK)
                 .body(ganttService.save(voParam))
